@@ -17,11 +17,13 @@
     }
     h2 {
       color: #16a085;
+      margin-top: 40px;
     }
     .images {
       display: flex;
       gap: 20px;
       margin-top: 20px;
+      flex-wrap: wrap;
     }
     .images figure {
       flex: 1;
@@ -42,6 +44,8 @@
 </head>
 <body>
   <h1>Project 0: Becoming Friends with Your Camera</h1>
+
+  <!-- Part 1 -->
   <h2>Part 1: Selfie — The Wrong Way vs. The Right Way</h2>
   <p>
     Take a picture of your friend (or yourself) from close up. You get a typical distorted selfie image. 
@@ -61,5 +65,34 @@
       <figcaption>The Right Way: Step Back & Zoom In</figcaption>
     </figure>
   </div>
+  <p>
+    When you take a selfie too close, your face looks weird because the camera makes your nose big and your head stretched. 
+    If you step back and zoom in, your face looks normal and more like how people see you in real life.
+  </p>
+
+  <!-- Part 2 -->
+  <h2>Part 2: Architectural Perspective Compression</h2>
+  <p>
+    Let's repeat the same procedure in reverse, for an urban scene. Pick a nice view down a long street (or a walking path on campus), 
+    zoom in, and take a photo. Now, walk down the street in the direction of your first shot, and take a second photo without zoom, 
+    such that the scene in the two photos appears approximately the same size. 
+    The first picture should look flattened, or compressed, compared to the second. Again, think about why.
+  </p>
+
+  <div class="images">
+    <figure>
+      <img src="project0/close_building.jpg" alt="Zoomed-in urban scene">
+      <figcaption>Compressed View: Zoomed In</figcaption>
+    </figure>
+    <figure>
+      <img src="project0/far_building.jpg" alt="Wide urban scene">
+      <figcaption>Expanded View: Close with Wide Angle</figcaption>
+    </figure>
+  </div>
+  <p>
+    When you zoom in from far away, the scene looks flatter because distances are compressed. 
+    Up close with no zoom, the perspective feels stretched, showing more depth in the street.
+  </p>
+
 </body>
 </html>
