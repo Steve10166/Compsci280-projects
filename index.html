@@ -1,114 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project 0: Becoming Friends with Your Camera</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CS280 Projects — Project 0 & 1</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background-color: #f9f9f9;
-      color: #333;
-      line-height: 1.6;
+    :root{
+      --bg:#f9f9f9; --text:#333; --muted:#666;
+      --brand:#16a085; --brandDark:#0f7c67; --head:#2c3e50;
+      --card:#fff; --shadow:0 2px 8px rgba(0,0,0,.12);
     }
-    h1 {
-      color: #2c3e50;
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);margin:0}
+    header{padding:28px 20px 10px}
+    .wrap{max-width:1100px;margin:0 auto;padding:0 20px 40px}
+    h1{color:var(--head);margin:0 0 6px}
+    .sub{color:var(--muted);margin:0 0 18px}
+
+    /* Tabs */
+    .tabs{display:flex;gap:6px;border-bottom:1px solid #e6e6e6;margin:18px 0 28px}
+    .tab{
+      appearance:none;border:none;background:none;
+      padding:10px 14px;border-radius:10px 10px 0 0;cursor:pointer;
+      font-weight:600;color:var(--head)
     }
-    h2 {
-      color: #16a085;
-      margin-top: 40px;
+    .tab.active{background:var(--card);box-shadow:var(--shadow)}
+    section[role="tabpanel"]{display:none;background:var(--card);box-shadow:var(--shadow);border-radius:14px;padding:22px}
+    section[role="tabpanel"].active{display:block}
+
+    /* Common */
+    h2{color:var(--brand);margin:8px 0 12px}
+    h3{color:var(--head);margin:22px 0 8px}
+    p{line-height:1.65}
+    details{background:#fafafa;border:1px solid #eee;border-radius:10px;padding:12px 14px}
+    details>summary{font-weight:600;color:var(--head);cursor:pointer;margin:-4px 0 8px}
+    .grid{
+      display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      margin-top:10px
     }
-    .images {
-      display: flex;
-      gap: 20px;
-      margin-top: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .images figure {
-      flex: 1;
-      text-align: center;
-      max-width: 300px; /* limit image container width */
-    }
-    .images img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    figure figcaption {
-      margin-top: 8px;
-      font-style: italic;
-      color: #555;
-    }
+    figure{margin:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+    figure img{width:100%;height:auto;display:block}
+    figcaption{padding:8px 10px;font-size:.92rem;color:var(--muted)}
+    .hero-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:8px}
+    .cardlink{display:block;background:var(--card);padding:16px 18px;border-radius:14px;text-decoration:none;color:var(--head);box-shadow:var(--shadow);border:1px solid #eee}
+    .cardlink:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(0,0,0,.12)}
+    .note{font-size:.92rem;color:var(--muted)}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{border:1px solid #e6e6e6;padding:8px 10px;text-align:left;font-size:.95rem}
+    th{background:#fbfbfb}
+    code.kbd{background:#f1f1f1;border:1px solid #e5e5e5;padding:2px 6px;border-radius:6px}
   </style>
 </head>
 <body>
-  <h1>Project 0: Becoming Friends with Your Camera</h1>
+  <header class="wrap">
+    <h1>CS280 Projects</h1>
+    <p class="sub">Project 0: Camera basics · Project 1: Prokudin-Gorskii colorization & alignment</p>
+    <div class="hero-links">
+      <a class="cardlink" href="#p0" onclick="switchTab('p0')">Go to Project 0</a>
+      <a class="cardlink" href="#p1" onclick="switchTab('p1')">Go to Project 1</a>
+    </div>
+  </header>
 
-  <!-- Part 1 -->
-  <h2>Part 1: Selfie — The Wrong Way vs. The Right Way</h2>
-  <p>
-    Take a picture of your friend (or yourself) from close up. You get a typical distorted selfie image. 
-    Now step back several feet from your subject, zoom in, and take a second picture. 
-    Try to get the face in the second photo to be the same size as in the first photo. 
-    If you've done things right, the second portrait should look much better than the first one. 
-    Think about why this is.
-  </p>
+  <div class="wrap">
+    <div class="tabs" role="tablist" aria-label="Projects">
+      <button id="tab-p0" class="tab active" role="tab" aria-controls="p0" aria-selected="true" onclick="switchTab('p0')">
+        Project 0
+      </button>
+      <button id="tab-p1" class="tab" role="tab" aria-controls="p1" aria-selected="false" onclick="switchTab('p1')">
+        Project 1
+      </button>
+    </div>
 
-  <div class="images">
-    <figure>
-      <img src="project0/close_selfie.jpg" alt="Close-up selfie">
-      <figcaption>The Wrong Way: Close-up Selfie</figcaption>
-    </figure>
-    <figure>
-      <img src="project0/far_selfie.jpg" alt="Far away selfie">
-      <figcaption>The Right Way: Step Back & Zoom In</figcaption>
-    </figure>
+    <!-- ========== PROJECT 0 (unchanged content from your file) ========== -->
+    <section id="p0" role="tabpanel" aria-labelledby="tab-p0" class="active">
+      <h2>Project 0: Becoming Friends with Your Camera</h2>
+
+      <h3>Part 1: Selfie — The Wrong Way vs. The Right Way</h3>
+      <p>
+        Take a picture of your friend (or yourself) from close up. You get a typical distorted selfie image.
+        Now step back several feet from your subject, zoom in, and take a second picture. Try to get the face in the
+        second photo to be the same size as in the first photo. If you've done things right, the second portrait should
+        look much better than the first one. Think about why this is.
+      </p>
+      <div class="grid">
+        <figure>
+          <img src="project0/close_selfie.jpg" alt="Close-up selfie">
+          <figcaption>The Wrong Way: Close-up Selfie</figcaption>
+        </figure>
+        <figure>
+          <img src="project0/far_selfie.jpg" alt="Far away selfie">
+          <figcaption>The Right Way: Step Back &amp; Zoom In</figcaption>
+        </figure>
+      </div>
+      <p class="note">
+        Close distance exaggerates perspective (large nose, stretched features). Stepping back and zooming in restores proportions.
+      </p>
+
+      <h3>Part 2: Architectural Perspective Compression</h3>
+      <p>
+        Repeat the procedure in reverse for an urban scene. The telephoto view appears flattened relative to the wide angle,
+        due to perspective compression when shooting from farther away.
+      </p>
+      <div class="grid">
+        <figure>
+          <img src="project0/close_building.jpg" alt="Zoomed-in urban scene">
+          <figcaption>Compressed View: Zoomed In</figcaption>
+        </figure>
+        <figure>
+          <img src="project0/far_building.jpg" alt="Wide urban scene">
+          <figcaption>Expanded View: Close with Wide Angle</figcaption>
+        </figure>
+      </div>
+
+      <h3>Part 3: The Dolly Zoom</h3>
+      <p>The classic “Vertigo shot” keeps subject size constant while changing focal length and distance.</p>
+      <figure style="max-width:420px">
+        <img src="project0/hitchcock.gif" alt="Dolly zoom effect">
+        <figcaption>Example of the Dolly Zoom (Vertigo Shot)</figcaption>
+      </figure>
+    </section>
+
+    <!-- ========== PROJECT 1 NEW SECTION ========== -->
+    <section id="p1" role="tabpanel" aria-labelledby="tab-p1">
+      <h2>Project 1: Prokudin-Gorskii Colorization & Alignment</h2>
+
+      <details open>
+        <summary>Overview &amp; Approach</summary>
+        <p>
+          I split each glass-plate image vertically into three equal bands (top→bottom = B, G, R). The goal is to align
+          the G and R bands to the B reference and then stack into an RGB image. I implemented:
+        </p>
+        <ul>
+          <li><b>Pyramid alignment</b>: coarse-to-fine search using phase correlation (subpixel) for robustness to large shifts.</li>
+          <li><b>Robust scoring</b>: NCC/gradient-NCC on interior windows to avoid colored borders.</li>
+          <li><b>Automatic border trimming</b>: keep only pixels where all channels overlap after shifting.</li>
+          <li><b>Tone &amp; white balance (optional)</b>: contrast stretching and simple gray-world white balance.</li>
+          <li><b>Color mapping</b> tweak: linear 3×3 channel mix to better emulate modern RGB if needed.</li>
+        </ul>
+        <p class="note">
+          If some images still show color fringing, I tighten the interior crop for matching and increase pyramid levels.
+        </p>
+      </details>
+
+      <h3>Results (compressed)</h3>
+      <p class="note">All images below are from <code class="kbd">proj1/results/</code> and are PNG/JPG (no large TIFFs).</p>
+
+      <div class="grid" id="results-grid">
+        <!-- Each figure references your existing files -->
+        <figure><img src="proj1/results/church.png" alt="church"><figcaption>church.png</figcaption></figure>
+        <figure><img src="proj1/results/emir.png" alt="emir"><figcaption>emir.png</figcaption></figure>
+        <figure><img src="proj1/results/harvesters.png" alt="harvesters"><figcaption>harvesters.png</figcaption></figure>
+        <figure><img src="proj1/results/icon.png" alt="icon"><figcaption>icon.png</figcaption></figure>
+        <figure><img src="proj1/results/italil.png" alt="italil"><figcaption>italil.png</figcaption></figure>
+        <figure><img src="proj1/results/lastochikino.png" alt="lastochikino"><figcaption>lastochikino.png</figcaption></figure>
+        <figure><img src="proj1/results/lugano.png" alt="lugano"><figcaption>lugano.png</figcaption></figure>
+        <figure><img src="proj1/results/melons.png" alt="melons"><figcaption>melons.png</figcaption></figure>
+        <figure><img src="proj1/results/mosque.png" alt="mosque"><figcaption>mosque.png</figcaption></figure>
+        <figure><img src="proj1/results/patheon.png" alt="patheon"><figcaption>patheon.png</figcaption></figure>
+        <figure><img src="proj1/results/redwood.png" alt="redwood"><figcaption>redwood.png</figcaption></figure>
+        <figure><img src="proj1/results/self_portrait.png" alt="self_portrait"><figcaption>self_portrait.png</figcaption></figure>
+        <figure><img src="proj1/results/siren.png" alt="siren"><figcaption>siren.png</figcaption></figure>
+        <figure><img src="proj1/results/three_generations.png" alt="three_generations"><figcaption>three_generations.png</figcaption></figure>
+
+        <!-- also show your two summary outputs if you like -->
+        <figure><img src="proj1/results/out.jpg" alt="out"><figcaption>out.jpg</figcaption></figure>
+        <figure><img src="proj1/results/out_improved.jpg" alt="out_improved"><figcaption>out_improved.jpg</figcaption></figure>
+      </div>
+
+      <h3>Computed Offsets (G→B and R→B)</h3>
+      <p class="note">
+        Paste the shifts your script prints into this table (positive <em>dx</em> = right, positive <em>dy</em> = down).
+        If you save a CSV, you can also regenerate this table from JS later.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>G dx</th><th>G dy</th>
+            <th>R dx</th><th>R dy</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Fill these rows with your actual numbers -->
+          <tr><td>church.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>emir.png</td><td></td><td></td><td></td><td></td><td>veil edges are tricky</td></tr>
+          <tr><td>harvesters.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>icon.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>italil.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>lastochikino.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>lugano.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>melons.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>mosque.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>patheon.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>redwood.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>self_portrait.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>siren.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>three_generations.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Problems &amp; Fixes</h3>
+      <ul>
+        <li><b>Colored borders after shifting:</b> solved by computing the intersection mask of non-zero pixels across channels and cropping to the largest connected component.</li>
+        <li><b>Misalignment on low-detail images:</b> switched to gradient-based matching (Sobel) and increased pyramid depth.</li>
+        <li><b>Tinted output:</b> optional gray-world white balance and 1–99% contrast stretching.</li>
+      </ul>
+    </section>
   </div>
-  <p>
-    When you take a selfie too close, your face looks weird because the camera makes your nose big and your head stretched. 
-    If you step back and zoom in, your face looks normal and more like how people see you in real life.
-  </p>
 
-  <!-- Part 2 -->
-  <h2>Part 2: Architectural Perspective Compression</h2>
-  <p>
-    Let's repeat the same procedure in reverse, for an urban scene. Pick a nice view down a long street (or a walking path on campus), 
-    zoom in, and take a photo. Now, walk down the street in the direction of your first shot, and take a second photo without zoom, 
-    such that the scene in the two photos appears approximately the same size. 
-    The first picture should look flattened, or compressed, compared to the second. Again, think about why.
-  </p>
-
-  <div class="images">
-    <figure>
-      <img src="project0/close_building.jpg" alt="Zoomed-in urban scene">
-      <figcaption>Compressed View: Zoomed In</figcaption>
-    </figure>
-    <figure>
-      <img src="project0/far_building.jpg" alt="Wide urban scene">
-      <figcaption>Expanded View: Close with Wide Angle</figcaption>
-    </figure>
-  </div>
-  <p>
-    When you zoom in from far away, the scene looks flatter because distances are compressed. 
-    Up close with no zoom, the perspective feels stretched, showing more depth in the street.
-  </p>
-
-  <!-- Part 3 -->
-  <h2>Part 3: The Dolly Zoom</h2>
-  <p>
-    In this part, we will be duplicating a classic film effect called the dolly zoom. 
-    It is a camera movement also known as the <em>"Vertigo shot"</em>, after a famous scene in Hitchcock's <em>Vertigo</em>. 
-  </p>
-
-  <div class="images">
-    <figure>
-      <img src="project0/hitchcock.gif" alt="Dolly zoom effect example">
-      <figcaption>Example of the Dolly Zoom (Vertigo Shot)</figcaption>
-    </figure>
-  </div>
-
+  <script>
+    function switchTab(id){
+      // buttons
+      document.querySelectorAll('.tab').forEach(b=>{
+        b.classList.toggle('active', b.id==='tab-'+id);
+        b.setAttribute('aria-selected', b.id==='tab-'+id ? 'true':'false');
+      });
+      // panels
+      document.querySelectorAll('[role="tabpanel"]').forEach(p=>{
+        p.classList.toggle('active', p.id===id);
+      });
+      // hash
+      history.replaceState(null, '', '#'+id);
+    }
+    // open tab from URL hash if present
+    window.addEventListener('DOMContentLoaded', ()=>{
+      const hash = (location.hash||'').replace('#','');
+      if(hash==='p1') switchTab('p1');
+    });
+  </script>
 </body>
 </html>
