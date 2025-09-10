@@ -130,11 +130,19 @@
           the G and R bands to the B reference and then stack into an RGB image. I implemented:
         </p>
         <ul>
-          <li><b>Pyramid alignment</b>: coarse-to-fine search using phase correlation (subpixel) for robustness to large shifts.</li>
-          <li><b>Robust scoring</b>: Sub-pixel gradient-based matching instead of simple pixel-level scoring on interior windows to avoid colored borders.</li>
-          <li><b>Automatic border trimming</b>: For this goal, in addition to a fixed trimming of a parameterized number of pixels for every image. I also implemented a trim method, where rows and columns on the edge with the percentage of white, black, or oversaturated pixels above a certain level are trimmed off. This ensures the generation of clean images, free of white, black, and colored borders due to improper overlay or shifting.</li>
-          <li><b>Tone &amp; white balance (optional)</b>: I used contrast streching with the rescale_intensity method from the exposure package in skimage, and just simple gray-world white balance.</li>
-          <li><b>Color mapping</b> tweak needed: I added a function to convolve the image RGB channels with a 3x3 RGB matrix, in case the glass nagtives fails to perfectly match pure red, green, and blue..</li>
+          <li><b>Pyramid alignment</b>: I align each channel to blue using a coarse-to-fine strategy. At scales <code>[0.125, 0.25, 0.5, 1.0]</code> I rescale both the reference and moving images, apply the cumulative shift so far, and estimate a new offset with <code>phase_cross_correlation(..., upsample_factor=20)</code> for sub-pixel accuracy. I accumulate these scale-normalized deltas to get the final <code>[dy, dx]</code> for G→B and R→B.</li>
+        
+          <li><b>Automatic border trimming</b>: After a conservative fixed crop (<code>margin = 200</code> pixels on all sides), I run a content-aware trim. I convert to grayscale, compute per-pixel saturation, and derive robust thresholds from the central 80% of the image: the 5% and 98% grayscale quantiles for “too dark/bright,” and <code>median(saturation)+0.28</code> for “too saturated.” I mark a rim mask where any of these hold and scan inward along rows/columns with a sliding window (width 22) until the rim proportion falls below 0.60. This returns slice indices so only the clean overlapping region remains—no black/white/colored edges from mis-registration.</li>
+        
+          <li><b>Contrast stretching &amp; white balance</b>: I stretch intensities with <code>skimage.exposure.rescale_intensity(..., in_range="image")</code> so the current frame uses the full 0–1 range. For color neutrality, I apply “white-patch” balancing: I take the 95th percentile per channel, invert to get per-channel gains, normalize them by the green channel, and scale the image so highlights look neutral instead of tinted.</li>
+        
+          <li><b>Color correction (RGB mixing)</b>: Because the three historical glass filters don’t map perfectly to modern RGB primaries, I tested various 3×3 correction matrix before balancing:
+            <pre style="margin:.5em 0 0;">[[ 1.20, -0.10, -0.10],
+         [ -0.05,  1.10, -0.05],
+         [ -0.05, -0.10,  1.10]]</pre>
+            I multiply the (H×W×3) image by this matrix and clip to [0, 1]. This gently boosts each channel while subtracting small cross-talk from the others, producing more natural color without heavy-handed grading.</li>
+        
+          <li><b>Data flow &amp; outputs</b>: For each input glass plate (stacked B/G/R vertically), I split into thirds (<code>B = top, G = middle, R = bottom</code>), align G and R to B, perform margin crop → trim → contrast stretch → color correction → white balance.</li>
         </ul>
       </details>
 
