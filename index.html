@@ -120,7 +120,6 @@
       </figure>
     </section>
 
-    <!-- ========== PROJECT 1 NEW SECTION ========== -->
     <section id="p1" role="tabpanel" aria-labelledby="tab-p1">
       <h2>Project 1: Prokudin-Gorskii Colorization & Alignment</h2>
 
@@ -132,18 +131,15 @@
         </p>
         <ul>
           <li><b>Pyramid alignment</b>: coarse-to-fine search using phase correlation (subpixel) for robustness to large shifts.</li>
-          <li><b>Robust scoring</b>: NCC/gradient-NCC on interior windows to avoid colored borders.</li>
-          <li><b>Automatic border trimming</b>: keep only pixels where all channels overlap after shifting.</li>
-          <li><b>Tone &amp; white balance (optional)</b>: contrast stretching and simple gray-world white balance.</li>
-          <li><b>Color mapping</b> tweak: linear 3×3 channel mix to better emulate modern RGB if needed.</li>
+          <li><b>Robust scoring</b>: Sub-pixel gradient-based matching instead of simple pixel-level scoring on interior windows to avoid colored borders.</li>
+          <li><b>Automatic border trimming</b>: For this goal, in addition to a fixed trimming of a parameterized number of pixels for every image. I also implemented a trim method, where rows and columns on the edge with the percentage of white, black, or oversaturated pixels above a certain level are trimmed off. This ensures the generation of clean images, free of white, black, and colored borders due to improper overlay or shifting.</li>
+          <li><b>Tone &amp; white balance (optional)</b>: I used contrast streching with the rescale_intensity method from the exposure package in skimage, and just simple gray-world white balance.</li>
+          <li><b>Color mapping</b> tweak needed: I added a function to convolve the image RGB channels with a 3x3 RGB matrix, in case the glass nagtives fails to perfectly match pure red, green, and blue..</li>
         </ul>
-        <p class="note">
-          If some images still show color fringing, I tighten the interior crop for matching and increase pyramid levels.
-        </p>
       </details>
 
       <h3>Results (compressed)</h3>
-      <p class="note">All images below are from <code class="kbd">proj1/results/</code> and are PNG/JPG (no large TIFFs).</p>
+      <p class="note">All images below are my code's result.</p>
 
       <div class="grid" id="results-grid">
         <!-- Each figure references your existing files -->
@@ -162,43 +158,36 @@
         <figure><img src="proj1/results/siren.png" alt="siren"><figcaption>siren.png</figcaption></figure>
         <figure><img src="proj1/results/three_generations.png" alt="three_generations"><figcaption>three_generations.png</figcaption></figure>
 
-        <!-- also show your two summary outputs if you like -->
-        <figure><img src="proj1/results/out.jpg" alt="out"><figcaption>out.jpg</figcaption></figure>
-        <figure><img src="proj1/results/out_improved.jpg" alt="out_improved"><figcaption>out_improved.jpg</figcaption></figure>
       </div>
 
-      <h3>Computed Offsets (G→B and R→B)</h3>
-      <p class="note">
-        Paste the shifts your script prints into this table (positive <em>dx</em> = right, positive <em>dy</em> = down).
-        If you save a CSV, you can also regenerate this table from JS later.
-      </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>G dx</th><th>G dy</th>
-            <th>R dx</th><th>R dy</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Fill these rows with your actual numbers -->
-          <tr><td>church.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>emir.png</td><td></td><td></td><td></td><td></td><td>veil edges are tricky</td></tr>
-          <tr><td>harvesters.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>icon.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>italil.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>lastochikino.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>lugano.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>melons.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>mosque.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>patheon.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>redwood.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>self_portrait.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>siren.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>three_generations.png</td><td></td><td></td><td></td><td></td><td></td></tr>
-        </tbody>
-      </table>
+      <h3>Computed Offsets</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Image</th>
+      <th>G dx</th><th>G dy</th>
+      <th>R dx</th><th>R dy</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>church.png</td><td>3.45</td><td>24.8</td><td>-4.3</td><td>57.80</td><td></td></tr>
+    <tr><td>emir.png</td><td>23.70</td><td>48.65</td><td>41.00</td><td>105.95</td><td>veil edges are tricky</td></tr>
+    <tr><td>harvesters.png</td><td>13.35</td><td>61.0</td><td>10.25</td><td>123.55</td><td></td></tr>
+    <tr><td>icon.png</td><td>16.05</td><td>39.2</td><td>23.10</td><td>88.30</td><td></td></tr>
+    <tr><td>italil.png</td><td>21.85</td><td>38.15</td><td>36.05</td><td>76.30</td><td></td></tr>
+    <tr><td>lastochikino.png</td><td>-1.70</td><td>-1.95</td><td>-8.90</td><td>76.05</td><td></td></tr>
+    <tr><td>lugano.png</td><td>-17.70</td><td>40.50</td><td>-28.80</td><td>92.05</td><td></td></tr>
+    <tr><td>melons.png</td><td>9.70</td><td>79.95</td><td>13.90</td><td>176.20</td><td></td></tr>
+    <tr><td>mosque.png</td><td>5.15</td><td>26.75</td><td>10.60</td><td>70.90</td><td></td></tr>
+    <tr><td>patheon.png</td><td>27.0</td><td>14.15</td><td>48.95</td><td>85.10</td><td></td></tr>
+    <tr><td>redwood.png</td><td>-31.20</td><td>58.30</td><td>-61.40</td><td>131.45</td><td></td></tr>
+    <tr><td>self_portrait.png</td><td>24.50</td><td>73.80</td><td>36.85</td><td>174.85</td><td></td></tr>
+    <tr><td>siren.png</td><td>-5.95</td><td>49.15</td><td>-23.80</td><td>96.15</td><td></td></tr>
+    <tr><td>three_generations.png</td><td>11.45</td><td>55.30</td><td>7.25</td><td>106.55</td><td></td></tr>
+  </tbody>
+</table>
 
       <h3>Problems &amp; Fixes</h3>
       <ul>
@@ -230,4 +219,5 @@
     });
   </script>
 </body>
+
 </html>
