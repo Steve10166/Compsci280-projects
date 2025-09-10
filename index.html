@@ -138,7 +138,7 @@
         </ul>
       </details>
 
-      <h3>Results (compressed)</h3>
+      <h3>Results</h3>
       <p class="note">All images below are my code's result.</p>
 
       <div class="grid" id="results-grid">
@@ -173,28 +173,33 @@
   </thead>
   <tbody>
     <tr><td>church.png</td><td>3.45</td><td>24.8</td><td>-4.3</td><td>57.80</td><td></td></tr>
-    <tr><td>emir.png</td><td>23.70</td><td>48.65</td><td>41.00</td><td>105.95</td><td>veil edges are tricky</td></tr>
+    <tr><td>emir.png</td><td>23.70</td><td>48.65</td><td>41.00</td><td>105.95</td><td></td></tr>
     <tr><td>harvesters.png</td><td>13.35</td><td>61.0</td><td>10.25</td><td>123.55</td><td></td></tr>
-    <tr><td>icon.png</td><td>16.05</td><td>39.2</td><td>23.10</td><td>88.30</td><td></td></tr>
+    <tr><td>icon.png</td><td>16.05</td><td>39.2</td><td>23.10</td><td>88.30</td><td>This looks really realistic.</td></tr>
     <tr><td>italil.png</td><td>21.85</td><td>38.15</td><td>36.05</td><td>76.30</td><td></td></tr>
     <tr><td>lastochikino.png</td><td>-1.70</td><td>-1.95</td><td>-8.90</td><td>76.05</td><td></td></tr>
-    <tr><td>lugano.png</td><td>-17.70</td><td>40.50</td><td>-28.80</td><td>92.05</td><td></td></tr>
+    <tr><td>lugano.png</td><td>-17.70</td><td>40.50</td><td>-28.80</td><td>92.05</td><td>I really like how this turned out.</td></tr>
     <tr><td>melons.png</td><td>9.70</td><td>79.95</td><td>13.90</td><td>176.20</td><td></td></tr>
     <tr><td>mosque.png</td><td>5.15</td><td>26.75</td><td>10.60</td><td>70.90</td><td></td></tr>
     <tr><td>patheon.png</td><td>27.0</td><td>14.15</td><td>48.95</td><td>85.10</td><td></td></tr>
     <tr><td>redwood.png</td><td>-31.20</td><td>58.30</td><td>-61.40</td><td>131.45</td><td></td></tr>
-    <tr><td>self_portrait.png</td><td>24.50</td><td>73.80</td><td>36.85</td><td>174.85</td><td></td></tr>
+    <tr><td>self_portrait.png</td><td>24.50</td><td>73.80</td><td>36.85</td><td>174.85</td>This one also looked very realistic.<td></td></tr>
     <tr><td>siren.png</td><td>-5.95</td><td>49.15</td><td>-23.80</td><td>96.15</td><td></td></tr>
     <tr><td>three_generations.png</td><td>11.45</td><td>55.30</td><td>7.25</td><td>106.55</td><td></td></tr>
   </tbody>
 </table>
-
-      <h3>Problems &amp; Fixes</h3>
-      <ul>
-        <li><b>Colored borders after shifting:</b> solved by computing the intersection mask of non-zero pixels across channels and cropping to the largest connected component.</li>
-        <li><b>Misalignment on low-detail images:</b> switched to gradient-based matching (Sobel) and increased pyramid depth.</li>
-        <li><b>Tinted output:</b> optional gray-world white balance and 1–99% contrast stretching.</li>
-      </ul>
+<h3>Before and After: Melons</h3>
+<div style="display: flex; gap: 20px; flex-wrap: wrap;">
+  <figure style="text-align:center;">
+    <img src="results/melons.png" alt="Melons before" width="400">
+    <figcaption>Before (melons.png)</figcaption>
+  </figure>
+  <figure style="text-align:center;">
+    <img src="out_improved.jpg" alt="Melons improved" width="400">
+    <figcaption>After (out_improved.jpg)</figcaption>
+  </figure>
+</div>
+      
     </section>
   </div>
 
