@@ -433,6 +433,37 @@
     produced a stronger, more convincing hybrid than converting either to grayscale before mixing.
   </p>
 </details>
+<h3>Part 2.3 + 2.4: Stacks and Multiresolution Blending</h3>
+<p>
+  I built Gaussian and Laplacian <em>stacks</em> (no downsampling) and used them with a blurred mask to blend images per Burt &amp; Adelson (1983). Below I show the stacks for Apple and Orange and the final Oraple; then two additional blends, including one with an irregular (circular) mask.
+</p>
+
+<h4>Gaussian &amp; Laplacian Stacks (Apple + Orange)</h4>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+  <figure><img src="proj2/stack_gaussian_apple.png"><figcaption>Gaussian stack — Apple</figcaption></figure>
+  <figure><img src="proj2/stack_gaussian_orange.png"><figcaption>Gaussian stack — Orange</figcaption></figure>
+  <figure><img src="proj2/stack_laplacian_apple.png"><figcaption>Laplacian stack — Apple</figcaption></figure>
+  <figure><img src="proj2/stack_laplacian_orange.png"><figcaption>Laplacian stack — Orange</figcaption></figure>
+  <figure><img src="proj2/stack_laplacian_blended.png"><figcaption>Laplacian stack — Blended bands</figcaption></figure>
+</div>
+
+<h4>Recreating Fig. 3.42 (a–l): Final Oraple</h4>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
+  <figure><img src="proj2/oraple.jpeg"><figcaption>Final blend (Oraple)</figcaption></figure>
+</div>
+
+<h4>Custom Blend #1 — Circular Mask</h4>
+<p class="note">Here I blend a daytime sun and nighttime moon using a <b>circular mask</b> centered in the image. The mask is Gaussian-smoothed at each stack level to soften the transition.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+  <figure><img src="proj2/sun.png"><figcaption>Input A: Sun</figcaption></figure>
+  <figure><img src="proj2/moon.png"><figcaption>Input B: Moon</figcaption></figure>
+  <figure><img src="proj2/sun_moon_circle_blend.png"><figcaption>Blend with circular mask</figcaption></figure>
+</div>
+
+<h4>Custom Blend #2 — Additional Result</h4>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
+  <figure><img src="proj2/gg_bridge.jpeg"><figcaption>Additional blended image</figcaption></figure>
+</div>
     </section>
   </div>
 
