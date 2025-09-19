@@ -54,10 +54,11 @@
 <body>
   <header class="wrap">
     <h1>CS280 Projects</h1>
-    <p class="sub">Project 0: Camera basics · Project 1: Prokudin-Gorskii colorization & alignment</p>
+    <p class="sub">Project 0: Camera basics · Project 1: Prokudin-Gorskii colorization & alignment · Project 2: Fun with Filters and Frequencies!</p>
     <div class="hero-links">
       <a class="cardlink" href="#p0" onclick="switchTab('p0')">Go to Project 0</a>
       <a class="cardlink" href="#p1" onclick="switchTab('p1')">Go to Project 1</a>
+      <a class="cardlink" href="#p2" onclick="switchTab('p2')">Go to Project 2</a>
     </div>
   </header>
 
@@ -68,6 +69,9 @@
       </button>
       <button id="tab-p1" class="tab" role="tab" aria-controls="p1" aria-selected="false" onclick="switchTab('p1')">
         Project 1
+      </button>
+      <button id="tab-p2" class="tab" role="tab" aria-controls="p2" aria-selected="false" onclick="switchTab('p2')">
+        Project 2
       </button>
     </div>
 
@@ -209,6 +213,127 @@
   </figure>
 </div>
       
+    </section>
+    <section id="p2" role="tabpanel" aria-labelledby="tab-p2">
+      <h2>Project 2: Convolutions, Gradients, and DoG</h2>
+    
+      <details open>
+        <summary>Overview</summary>
+        <p>
+          In this project I implement 2D convolution from scratch (four loops → two loops), verify against
+          <code>scipy.signal.convolve2d</code>, visualize finite differences and gradient magnitudes, and then denoise edges
+          using a Gaussian blur and Derivative-of-Gaussian (DoG) filters. Finally, I compare visual quality before/after
+          smoothing and note performance differences between my DIY convolution and SciPy.
+        </p>
+      </details>
+    
+      <h3>Part 1.1: Convolutions from Scratch</h3>
+      <p>
+        I wrote two versions of convolution (zero padding): a naïve 4-loop and a 2-loop (using a sliding window + dot product).
+        I compared with <code>scipy.signal.convolve2d</code> on a 9&times;9 box filter applied to my grayscale selfie.
+        SciPy is much faster than my DIY implementation for the same kernel and image sizes.
+      </p>
+    
+      <pre><code class="language-python">import numpy as np
+    import cv2
+    import matplotlib.pyplot as plt
+    from scipy.signal import convolve2d
+    
+    def convolve(img, k):
+        img = np.asarray(img, dtype=float)
+        k = np.asarray(k, dtype=float)
+        kx, ky = k.shape
+        ih, iw = img.shape
+        px, py = kx//2, ky//2
+        pad = np.pad(img, ((px, px), (py, py)))
+        out = np.zeros_like(img, dtype=float)
+        for i in range(ih):
+            for j in range(iw):
+                s = 0.0
+                for m in range(kx):
+                    for n in range(ky):
+                        s += pad[i+m, j+n] * k[kx-1-m, ky-1-n]
+                out[i, j] = s
+        return out
+    
+    def convolve_2loops(img, k):
+        img = np.asarray(img, dtype=float)
+        k = np.asarray(k, dtype=float)
+        kx, ky = k.shape
+        ih, iw = img.shape
+        px, py = kx//2, ky//2
+        pad = np.pad(img, ((px, px), (py, py)))
+        out = np.zeros_like(img, dtype=float)
+        for i in range(ih):
+            for j in range(iw):
+                patch = pad[i:i+kx, j:j+ky]
+                out[i, j] = np.sum(patch * k[::-1, ::-1])
+        return out
+    
+    if __name__ == "__main__":
+        img = cv2.imread("proj2/my_face.jpg", cv2.IMREAD_GRAYSCALE)
+        img = img[::8, ::8]
+        kernel = np.ones((9, 9), float) / 81.0
+    
+        y1 = convolve(img, kernel)
+        y2 = convolve_2loops(img, kernel)
+        y3 = convolve2d(img, kernel, mode="same", boundary="fill", fillvalue=0)
+    
+        plt.imsave("proj2/results/box_convolve.png", y1, cmap="gray")
+        plt.imsave("proj2/results/box_convolve_2loops.png", y2, cmap="gray")
+        plt.imsave("proj2/results/box_convolve_scipy.png", y3, cmap="gray")
+    
+        Dx = np.array([[1, 0, -1]])
+        Dy = np.array([[1], [0], [-1]])
+        ex = convolve_2loops(img, Dx)
+        ey = convolve_2loops(img, Dy)
+        plt.imsave("proj2/results/edges_horizontal.png", ex, cmap="gray")
+        plt.imsave("proj2/results/edges_vertical.png", ey, cmap="gray")
+    </code></pre>
+    
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <figure><img src="proj2/my_face.jpg" alt="Selfie" style="max-width:180px"><figcaption>Input (grayscale selfie)</figcaption></figure>
+        <figure><img src="proj2/results/box_convolve.png" alt="Box conv" style="max-width:180px"><figcaption>DIY 4-loop box filter</figcaption></figure>
+        <figure><img src="proj2/results/box_convolve_scipy.png" alt="Box conv SciPy" style="max-width:180px"><figcaption>SciPy box filter (faster)</figcaption></figure>
+      </div>
+    
+      <h3>Part 1.2: Finite Difference Operator</h3>
+      <p>
+        I convolve the image with <code>D_x</code> and <code>D_y</code> to get partials, then compute gradient magnitude
+        and threshold to produce a binary edge map. Below are the outputs (smaller images for compact display).
+      </p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <figure><img src="proj2/results/10_plain_lx.png" alt="Lx" style="max-width:180px"><figcaption>∂I/∂x</figcaption></figure>
+        <figure><img src="proj2/results/11_plain_ly.png" alt="Ly" style="max-width:180px"><figcaption>∂I/∂y</figcaption></figure>
+        <figure><img src="proj2/results/12_plain_gradmag.png" alt="Grad mag" style="max-width:180px"><figcaption>Gradient magnitude</figcaption></figure>
+        <figure><img src="proj2/results/13_plain_edges.png" alt="Edges" style="max-width:180px"><figcaption>Binary edges (thresholded)</figcaption></figure>
+      </div>
+    
+      <h3>Part 1.3: Derivative of Gaussian (DoG)</h3>
+      <p>
+        To reduce noise, I first blur with a Gaussian then apply finite differences; edges become cleaner and more continuous.
+        Equivalently, I precompute 2D DoG filters by convolving a Gaussian with <code>D_x</code> and <code>D_y</code> and
+        apply them in one pass. The blurred-first and DoG approaches match as expected. The edges here are much more defined
+        than without blur.
+      </p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <figure><img src="proj2/results/20_blur_img.png" alt="Blurred" style="max-width:180px"><figcaption>Gaussian-blurred image</figcaption></figure>
+        <figure><img src="proj2/results/21_blur_lx.png" alt="Blur Lx" style="max-width:180px"><figcaption>∂(G*I)/∂x</figcaption></figure>
+        <figure><img src="proj2/results/22_blur_ly.png" alt="Blur Ly" style="max-width:180px"><figcaption>∂(G*I)/∂y</figcaption></figure>
+        <figure><img src="proj2/results/23_blur_gradmag.png" alt="Blur gradmag" style="max-width:180px"><figcaption>Grad. magnitude (blurred)</figcaption></figure>
+      </div>
+    
+      <details>
+        <summary>Bells &amp; Whistles: Gradient Orientation (HSV)</summary>
+        <p>
+          I map the gradient orientation to hue (0–π → 0–180° in OpenCV HSV), magnitude to value, and keep saturation high for visibility.
+          This gives an intuitive color wheel view of edge directions.
+        </p>
+        <figure style="max-width:360px">
+          <img src="proj2/results/orient_hsv.png" alt="Orientation HSV">
+          <figcaption>Gradient orientations visualized in HSV</figcaption>
+        </figure>
+      </details>
     </section>
   </div>
 

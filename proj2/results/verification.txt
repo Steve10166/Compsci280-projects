@@ -1,0 +1,2 @@
+Relative error X (two-step vs DoG): 3.800697e-15
+Relative error Y (two-step vs DoG): 5.398896e-15
