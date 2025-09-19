@@ -305,7 +305,7 @@
         <figure><img src="proj2/results/23_blur_edges.png" alt="Blur edges" style="max-width:180px"><figcaption>Grad. edges</figcaption></figure>
       </div>
     
-      <details>
+
         <summary>Bells &amp; Whistles: Gradient Orientation (HSV)</summary>
         <p>
           I map the gradient orientation to hue (0–π → 0–180° in OpenCV HSV), magnitude to value, and keep saturation high for visibility.
@@ -315,7 +315,7 @@
           <img src="proj2/results/orientation_hsv.png" alt="Orientation HSV">
           <figcaption>Gradient orientations visualized in HSV</figcaption>
         </figure>
-      </details>
+
 
       <h3>Part 2.1: Unsharp Mask Filter</h3>
 <p>
@@ -350,7 +350,6 @@
   <figure><img src="proj2/results/other_sharpened_a1.5.png" alt="Other sharpened" style="max-width:180px"><figcaption>Sharpened (a=1.5)</figcaption></figure>
 </div>
 
-<!-- Other image: amount sweep -->
 <h4 style="margin-top:12px">Other Image — Varying the sharpening amount</h4>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
   <figure><img src="proj2/results/other_sharpened_a0.5.png" alt="Other a=0.5" style="max-width:180px"><figcaption>a = 0.5</figcaption></figure>
@@ -424,7 +423,7 @@
   </figure>
 </div>
 
-<details>
+
   <summary>Bells &amp; Whistles: Using Color</summary>
   <p>
     I keep the images in <b>color</b> during filtering and mixing. In practice, color improves the perceptual separation:
@@ -432,7 +431,7 @@
     color in the <i>high-frequency</i> component boosts edge salience. In my experiments, keeping both components in color
     produced a stronger, more convincing hybrid than converting either to grayscale before mixing.
   </p>
-</details>
+
 <h3>Part 2.3 + 2.4: Stacks and Multiresolution Blending</h3>
 <p>
   I built Gaussian and Laplacian <em>stacks</em> (no downsampling) and used them with a blurred mask to blend images per Burt &amp; Adelson (1983). Below I show the stacks for Apple and Orange and the final Oraple; then two additional blends, including one with an irregular (circular) mask.
