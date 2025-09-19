@@ -53,12 +53,12 @@ def show_frequency_analysis(im1, im2, hi, lo, hybrid):
 
 if __name__ == "__main__":
 
-    im2 = plt.imread('./DerekPicture.jpg')/255.
-
-    im1 = plt.imread('./nutmeg.jpg')/255
+    im2 = plt.imread('./my_face.jpg')/255.
+    im2 = im2[::3, ::3]
+    im1 = plt.imread('./bo2.jpg')/255
     im1_aligned, im2_aligned = align_images(im1, im2)
 
-    sigma1 = 15  # for high-pass on image 1
+    sigma1 = 8  # for high-pass on image 1
     sigma2 = 10  # for low-pass on image 2
 
     hybrid, hi, lo = hybrid_image(im1_aligned, im2_aligned, sigma1, sigma2)

@@ -281,7 +281,7 @@
       <h3>Part 1.2: Finite Difference Operator</h3>
       <p>
         I convolve the image with <code>D_x</code> and <code>D_y</code> to get partials, then compute gradient magnitude
-        and threshold to produce a binary edge map. Below are the outputs (smaller images for compact display).
+        and threshold to produce a binary edge map. Below are the outputs.
       </p>
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
         <figure><img src="proj2/results/10_plain_Ix.png" alt="Ix" style="max-width:180px"><figcaption>∂I/∂x</figcaption></figure>
@@ -301,7 +301,8 @@
         <figure><img src="proj2/results/20_blur_img.png" alt="Blurred" style="max-width:180px"><figcaption>Gaussian-blurred image</figcaption></figure>
         <figure><img src="proj2/results/21_blur_Ix.png" alt="Blur Ix" style="max-width:180px"><figcaption>∂(G*I)/∂x</figcaption></figure>
         <figure><img src="proj2/results/22_blur_Iy.png" alt="Blur Iy" style="max-width:180px"><figcaption>∂(G*I)/∂y</figcaption></figure>
-        <figure><img src="proj2/results/23_blur_gradmag.png" alt="Blur gradmag" style="max-width:180px"><figcaption>Grad. magnitude (blurred)</figcaption></figure>
+        <figure><img src="proj2/results/23_blur_gradmag.png" alt="Blur gradmag" style="max-width:180px"><figcaption>Grad. magnitude</figcaption></figure>
+        <figure><img src="proj2/results/23_blur_edges.png" alt="Blur edges" style="max-width:180px"><figcaption>Grad. edges</figcaption></figure>
       </div>
     
       <details>
@@ -315,6 +316,53 @@
           <figcaption>Gradient orientations visualized in HSV</figcaption>
         </figure>
       </details>
+
+      <h3>Part 2.1: Unsharp Mask Filter</h3>
+<p>
+  A Gaussian blur keeps <b>low frequencies</b> (smooth content). Subtracting the blur from the original gives the
+  <b>high frequencies</b> (edges/textures): <code>high = I - Gσ * I</code>. Unsharp masking adds those details back:
+  <code>I<sub>sharp</sub> = I + a · high</code>, where <code>a</code> controls strength. Below I show the blurred,
+  high-frequency (re-centered for visibility), and sharpened results for the Taj Mahal and another photo, then vary
+  <code>a</code> to illustrate its effect.
+</p>
+
+<!-- Taj: blur / high-freq / sharpened -->
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+  <figure><img src="proj2/results/taj_blurred.png" alt="Taj blurred" style="max-width:180px"><figcaption>Taj — Gaussian blur</figcaption></figure>
+  <figure><img src="proj2/results/taj_highfreq.png" alt="Taj highfreq" style="max-width:180px"><figcaption>Taj — high frequencies (viz)</figcaption></figure>
+  <figure><img src="proj2/results/taj_sharpened_a1.5.png" alt="Taj sharpened" style="max-width:180px"><figcaption>Taj — sharpened (a=1.5)</figcaption></figure>
+</div>
+
+<!-- Taj: amount sweep -->
+<h4 style="margin-top:12px">Taj — Varying the sharpening amount</h4>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+  <figure><img src="proj2/results/taj_sharpened_a0.5.png" alt="Taj a=0.5" style="max-width:180px"><figcaption>a = 0.5</figcaption></figure>
+  <figure><img src="proj2/results/taj_sharpened_a1.0.png" alt="Taj a=1.0" style="max-width:180px"><figcaption>a = 1.0</figcaption></figure>
+  <figure><img src="proj2/results/taj_sharpened_a1.5.png" alt="Taj a=1.5" style="max-width:180px"><figcaption>a = 1.5</figcaption></figure>
+  <figure><img src="proj2/results/taj_sharpened_a2.5.png" alt="Taj a=2.5" style="max-width:180px"><figcaption>a = 2.5</figcaption></figure>
+</div>
+
+<!-- Other image: blur / high-freq / sharpened -->
+<h4 style="margin-top:18px">Other Image — Results</h4>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+  <figure><img src="proj2/results/other_blurred.png" alt="Other blurred" style="max-width:180px"><figcaption>Gaussian blur</figcaption></figure>
+  <figure><img src="proj2/results/other_highfreq.png" alt="Other highfreq" style="max-width:180px"><figcaption>High frequencies (viz)</figcaption></figure>
+  <figure><img src="proj2/results/other_sharpened_a1.5.png" alt="Other sharpened" style="max-width:180px"><figcaption>Sharpened (a=1.5)</figcaption></figure>
+</div>
+
+<!-- Other image: amount sweep -->
+<h4 style="margin-top:12px">Other Image — Varying the sharpening amount</h4>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+  <figure><img src="proj2/results/other_sharpened_a0.5.png" alt="Other a=0.5" style="max-width:180px"><figcaption>a = 0.5</figcaption></figure>
+  <figure><img src="proj2/results/other_sharpened_a1.0.png" alt="Other a=1.0" style="max-width:180px"><figcaption>a = 1.0</figcaption></figure>
+  <figure><img src="proj2/results/other_sharpened_a1.5.png" alt="Other a=1.5" style="max-width:180px"><figcaption>a = 1.5</figcaption></figure>
+  <figure><img src="proj2/results/other_sharpened_a2.5.png" alt="Other a=2.5" style="max-width:180px"><figcaption>a = 2.5</figcaption></figure>
+</div>
+
+<p class="note" style="margin-top:10px">
+  Increasing <code>a</code> raises acutance but also risks halos and noise amplification. With moderate Gaussian σ,
+  edges look crisper; at very high <code>a</code> the halos become visible around strong contrasts.
+</p>
     </section>
   </div>
 
