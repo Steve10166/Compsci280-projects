@@ -269,32 +269,13 @@
                 patch = pad[i:i+kx, j:j+ky]
                 out[i, j] = np.sum(patch * k[::-1, ::-1])
         return out
-    
-    if __name__ == "__main__":
-        img = cv2.imread("proj2/my_face.jpg", cv2.IMREAD_GRAYSCALE)
-        img = img[::8, ::8]
-        kernel = np.ones((9, 9), float) / 81.0
-    
-        y1 = convolve(img, kernel)
-        y2 = convolve_2loops(img, kernel)
-        y3 = convolve2d(img, kernel, mode="same", boundary="fill", fillvalue=0)
-    
-        plt.imsave("proj2/results/box_convolve.png", y1, cmap="gray")
-        plt.imsave("proj2/results/box_convolve_2loops.png", y2, cmap="gray")
-        plt.imsave("proj2/results/box_convolve_scipy.png", y3, cmap="gray")
-    
-        Dx = np.array([[1, 0, -1]])
-        Dy = np.array([[1], [0], [-1]])
-        ex = convolve_2loops(img, Dx)
-        ey = convolve_2loops(img, Dy)
-        plt.imsave("proj2/results/edges_horizontal.png", ex, cmap="gray")
-        plt.imsave("proj2/results/edges_vertical.png", ey, cmap="gray")
+  
     </code></pre>
     
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
-        <figure><img src="proj2/my_face.jpg" alt="Selfie" style="max-width:180px"><figcaption>Input (grayscale selfie)</figcaption></figure>
-        <figure><img src="proj2/results/box_convolve.png" alt="Box conv" style="max-width:180px"><figcaption>DIY 4-loop box filter</figcaption></figure>
-        <figure><img src="proj2/results/box_convolve_scipy.png" alt="Box conv SciPy" style="max-width:180px"><figcaption>SciPy box filter (faster)</figcaption></figure>
+        <figure><img src="proj2/my_face.jpg" alt="Selfie" style="max-width:180px"><figcaption>Input</figcaption></figure>
+        <figure><img src="proj2/results/box_convolve.png" alt="Box conv" style="max-width:180px"><figcaption>DIY 4-loop Convolution</figcaption></figure>
+        <figure><img src="proj2/results/box_convolve_scipy.png" alt="Box conv SciPy" style="max-width:180px"><figcaption>SciPy box filter (much faster!)</figcaption></figure>
       </div>
     
       <h3>Part 1.2: Finite Difference Operator</h3>
