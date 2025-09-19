@@ -447,7 +447,7 @@
   <figure><img src="proj2/stack_laplacian_blended.png"><figcaption>Laplacian stack — Blended bands</figcaption></figure>
 </div>
 
-<h4>Recreating Fig. 3.42 (a–l): Final Oraple</h4>
+<h4>Recreating Final Oraple</h4>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
   <figure><img src="proj2/oraple.jpeg"><figcaption>Final blend (Oraple)</figcaption></figure>
 </div>
@@ -464,6 +464,15 @@
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
   <figure><img src="proj2/gg_bridge.jpeg"><figcaption>Additional blended image</figcaption></figure>
 </div>
+<h3>Bells &amp; Whistles: Global White Balance</h3>
+<p class="note">
+  To reduce color-cast mismatches across inputs, I apply a simple global white balance before filtering/blending.
+  Using a white-patch approach (95th percentile per RGB channel), both sources start from a neutral baseline, yielding more convincing results without altering spatial detail.
+  <code>def white_balance(img, q=95):
+    p = np.percentile(img.reshape(-1,3), q, axis=0)
+    s = p.mean() / (p + 1e-8)
+    return np.clip(img * s, 0, 1)</code>
+</p>
     </section>
   </div>
 
