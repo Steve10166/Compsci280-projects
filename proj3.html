@@ -79,22 +79,22 @@
 
       <div class="group-title">Set 1</div>
       <div class="grid grid-sm">
-        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0815.jpeg" alt="Set1 frame 1"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0816.jpeg" alt="Set1 frame 2"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0817.jpeg" alt="Set1 frame 3"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0818.jpeg" alt="Set1 frame 4"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0819.jpeg" alt="Set1 frame 5"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0820.jpeg" alt="Set1 frame 6"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0815.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0816.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0817.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0818.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0819.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set1/IMG_0820.jpeg"></figure>
       </div>
 
       <div class="group-title" style="margin-top:12px">Set 2</div>
       <div class="grid grid-sm">
-        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0824.jpeg" alt="Set2 frame 1"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0825.jpeg" alt="Set2 frame 2"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0826.jpeg" alt="Set2 frame 3"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0827.jpeg" alt="Set2 frame 4"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0828.jpeg" alt="Set2 frame 5"></figure>
-        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0829.jpeg" alt="Set2 frame 6"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0824.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0825.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0826.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0827.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0828.jpeg"></figure>
+        <figure class="thumb-sm"><img src="proj3/imgs/set2/IMG_0829.jpeg"></figure>
       </div>
     </section>
 
@@ -106,14 +106,18 @@
         projective transform <code>p' = H p</code> using least squares on the linearized system.
       </p>
 
-      <details open>
         <summary>Correspondence Visualizations (larger)</summary>
         <div class="grid viz-grid">
-          <figure><img src="proj3/presentables/Figure_1.png" alt="Set 1 matches"><figcaption>Set 1 matches</figcaption></figure>
-          <figure><img src="proj3/presentables/Figure_2.png" alt="Set 2 matches"><figcaption>Set 2 matches</figcaption></figure>
-          <figure><img src="proj3/presentables/Figure_3.png" alt="Set 3 matches"><figcaption>Set 3 matches</figcaption></figure>
+          <figure class="mosaic-big wide-figure">
+            <img src="proj3/presentables/Figure_1.png">
+          </figure>
+          <figure class="mosaic-big wide-figure">
+            <img src="proj3/presentables/Figure_2.png">
+          </figure>
+          <figure class="mosaic-big wide-figure">
+            <img src="proj3/presentables/Figure_3.png">
+          </figure>
         </div>
-      </details>
 
       <details>
         <summary>Recovered Homography Matrices</summary>
@@ -143,25 +147,15 @@
       </details>
 
       <details>
-        <summary>System of Equations \(A\,h=b\) (one row pair per point)</summary>
+        <summary>System of Equations \(A\,h=b\)</summary>
         <table>
           <thead>
             <tr>
-              <th>Point \(i\)</th>
-              <th>Equation 1 (x′)</th>
-              <th>Equation 2 (y′)</th>
+              <th>Set</th>
+              <th>Equation</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>\((x_i,y_i)\to(x'_i,y'_i)\)</td>
-              <td>
-                \(-x_i \; -y_i \; -1 \; 0 \; 0 \; 0 \; x_i x'_i \; y_i x'_i \; x'_i\)
-              </td>
-              <td>
-                \(0 \; 0 \; 0 \; -x_i \; -y_i \; -1 \; x_i y'_i \; y_i y'_i \; y'_i\)
-              </td>
-            </tr>
             <tr>
                 <td>Set 1</td>
                 <td><code>[[-1.96037650e+03 -1.48187793e+03 -1.00000000e+00  0.00000000e+00
@@ -328,12 +322,16 @@
         <code>warpImageNearestNeighbor(im,H)</code> and <code>warpImageBilinear(im,H)</code>.
         I also perform planar rectification by mapping a clicked quadrilateral to a square.
       </p>
-      <h3>Rectification Examples (larger)</h3>
-      <div class="grid grid-lg">
-        <figure><img src="proj3/presentables/rctify.png" alt="Rectify tiles"><figcaption>Attempt to rectify squeezed tiles back to square.</figcaption></figure>
-        <figure><img src="proj3/presentables/rectify.png" alt="Rectify shades"><figcaption>Rectify window shades back to square shape.</figcaption></figure>
-        <figure><img src="proj3/presentables/rectify3.png" alt="Rectify windows"><figcaption>Rectify windows back to square shape.</figcaption></figure>
-      </div>
+      <h3>Rectification Examples</h3>
+      <figure class="mosaic-big wide-figure">
+        <img src="proj3/presentables/rctify.png">
+      </figure>
+      <figure class="mosaic-big wide-figure">
+        <img src="proj3/presentables/rectify.png">
+      </figure>
+      <figure class="mosaic-big wide-figure">
+        <img src="proj3/presentables/rectify3.png">
+      </figure>
       <p class="note">Nearest is faster but jaggier; bilinear is smoother, better for mosaics.</p>
     </section>
 
@@ -348,31 +346,31 @@
       <h3>Mosaic Results</h3>
 
       <div class="sources-row">
-        <figure><img src="proj3/imgs/set1/IMG_0815.jpeg" alt="Set 1 source 1"><figcaption>Set 1 — source</figcaption></figure>
-        <figure><img src="proj3/imgs/set1/IMG_0816.jpeg" alt="Set 1 source 2"><figcaption>Set 1 — source</figcaption></figure>
-        <figure><img src="proj3/imgs/set1/IMG_0817.jpeg" alt="Set 1 source 3"><figcaption>Set 1 — source</figcaption></figure>
+        <figure><img src="proj3/imgs/set1/IMG_0815.jpeg"><figcaption>Set 1 — source</figcaption></figure>
+        <figure><img src="proj3/imgs/set1/IMG_0816.jpeg"><figcaption>Set 1 — source</figcaption></figure>
+        <figure><img src="proj3/imgs/set1/IMG_0817.jpeg"><figcaption>Set 1 — source</figcaption></figure>
       </div>
       <figure class="mosaic-big wide-figure">
-        <img src="proj3/mosaic_set1_out/step_02_IMG_0817.png" alt="Set 1 mosaic">
+        <img src="proj3/mosaic_set1_out/step_02_IMG_0817.png">
         <figcaption>Set 1 — mosaic</figcaption>
       </figure>
 
       <div class="sources-row">
-        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0845.jpeg" alt="Set 2 source 1"><figcaption>Set 2 — source</figcaption></figure>
-        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0846.jpeg" alt="Set 2 source 2"><figcaption>Set 2 — source</figcaption></figure>
+        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0845.jpeg"><figcaption>Set 2 — source</figcaption></figure>
+        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0846.jpeg"><figcaption>Set 2 — source</figcaption></figure>
       </div>
       <figure class="mosaic-big wide-figure">
-        <img src="proj3/mosaic_set2_out/step_01_IMG_0846.png" alt="Set 2 mosaic">
+        <img src="proj3/mosaic_set2_out/step_01_IMG_0846.png">
         <figcaption>Set 2 — mosaic</figcaption>
       </figure>
 
       <div class="sources-row">
-        <figure><img src="proj3/imgs/set3/IMG_0843.jpeg" alt="Set 1 source 1"><figcaption>Set 3 — source</figcaption></figure>
-        <figure><img src="proj3/imgs/set1/IMG_0844 2.jpeg" alt="Set 1 source 2"><figcaption>Set 3 — source</figcaption></figure>
+        <figure><img src="proj3/imgs/set3/IMG_0843.jpeg"><figcaption>Set 3 — source</figcaption></figure>
+        <figure><img src="proj3/imgs/set3/IMG_0844 2.jpeg"><figcaption>Set 3 — source</figcaption></figure>
 
       </div>
       <figure class="mosaic-big wide-figure">
-        <img src="proj3/mosaic_set2_out/step_01_IMG_0844 2.png" alt="Set 1 mosaic">
+        <img src="proj3/mosaic_set2_out/step_01_IMG_0844 2.png">
         <figcaption>Set 3 — mosaic</figcaption>
       </figure>
     </section>
@@ -384,29 +382,21 @@
         For the cylindrical mapping part, I pre-warp each input image onto a cylindrical surface before stitching so that rotations around the camera’s optical axis become horizontal translations in cylindrical space. This remaps each pixel according to its projected angle and height on the cylinder, using a fixed focal length or field of view to preserve scale consistency. The cylindrical projection removes much of the perspective distortion present in planar mosaics and ensures that vertical lines remain straight and scene geometry looks natural even across wide sweeps. After mapping, the warped images are aligned with homographies in cylindrical coordinates and composited using the same alpha-weighted blending, producing smooth, concave panoramas that better approximate the true geometry of rotating the camera about a single point.
       </p>
       <div class="sources-row">
-        <figure><img src="proj3/imgs/set2/IMG_0824.jpeg" alt="Set 1 source 1"><figcaption>Cyl Set 1 — source</figcaption></figure>
-        <figure><img src="proj3/imgs/set2/IMG_0827.jpeg" alt="Set 1 source 2"><figcaption>Cyl Set 1 — source</figcaption></figure>
-        <figure><img src="proj3/imgs/set2/IMG_0831.jpeg" alt="Set 1 source 2"><figcaption>Cyl Set 1 — source</figcaption></figure>
+        <figure><img src="proj3/imgs/set2/IMG_0824.jpeg"><figcaption>Cyl Set 1 — source</figcaption></figure>
+        <figure><img src="proj3/imgs/set2/IMG_0827.jpeg"><figcaption>Cyl Set 1 — source</figcaption></figure>
+        <figure><img src="proj3/imgs/set2/IMG_0831.jpeg"><figcaption>Cyl Set 1 — source</figcaption></figure>
       </div>
       <figure class="mosaic-big wide-figure">
-        <img src="proj3/mosaic_cyl_set2_out/mosaic_cyl_final.png" alt="Set 1 mosaic">
+        <img src="proj3/mosaic_cyl_set2_out/mosaic_cyl_final.png">
         <figcaption>Set 1 — Cylindrical mosaic</figcaption>
       </figure>
       <div class="sources-row">
-        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0845.jpeg" alt="Set 1 source 1"><figcaption>Cyl Set 2 — source</figcaption></figure>
-        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0846.jpeg" alt="Set 1 source 2"><figcaption>Cyl Set 2 — source</figcaption></figure>
+        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0845.jpeg"><figcaption>Cyl Set 2 — source</figcaption></figure>
+        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0846.jpeg"><figcaption>Cyl Set 2 — source</figcaption></figure>
       <figure class="mosaic-big wide-figure">
-        <img src="proj3/mosaic_cyl_set2_out/step_01_IMG_0846_cyl.png" alt="Set 1 mosaic">
+        <img src="proj3/mosaic_cyl_set2_out/step_01_IMG_0846_cyl.png">
         <figcaption>Set 2 — Cylindrical mosaic</figcaption>
       </figure>
-      <details>
-        <summary>Implementation Highlights</summary>
-        <ul>
-          <li>Inverse map: for output (X<sub>c</sub>, Y<sub>c</sub>) on cylinder, back-project to source (x, y) and sample bilinearly.</li>
-          <li>Concave vs. convex in image coords: flip the sign on the vertical term when y-axis points downward.</li>
-          <li>Consistent focal length across frames to keep scale stable; I expose <code>f</code> or <code>FOV°</code>.</li>
-        </ul>
-      </details>
     </section>
   </main>
 </body>
