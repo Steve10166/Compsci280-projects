@@ -375,22 +375,13 @@
         <img src="proj3/mosaic_set2_out/step_01_IMG_0844 2.png" alt="Set 1 mosaic">
         <figcaption>Set 3 — mosaic</figcaption>
       </figure>
-
-      <details>
-        <summary>Blending Notes</summary>
-        <p class="note">
-          I use per-pixel alpha and simple feathering.
-        </p>
-      </details>
     </section>
 
     <!-- A.5 -->
     <section id="a5">
       <h2>A.5 — Bells &amp; Whistles (Mandatory for CS280A)</h2>
       <p>
-        I implemented cylindrical pre-warping for wide panoramas.
-        Images are first mapped to the cylindrical surface, then stitched
-        in cylindrical coordinates.
+        For the cylindrical mapping part, I pre-warp each input image onto a cylindrical surface before stitching so that rotations around the camera’s optical axis become horizontal translations in cylindrical space. This remaps each pixel according to its projected angle and height on the cylinder, using a fixed focal length or field of view to preserve scale consistency. The cylindrical projection removes much of the perspective distortion present in planar mosaics and ensures that vertical lines remain straight and scene geometry looks natural even across wide sweeps. After mapping, the warped images are aligned with homographies in cylindrical coordinates and composited using the same alpha-weighted blending, producing smooth, concave panoramas that better approximate the true geometry of rotating the camera about a single point.
       </p>
       <div class="sources-row">
         <figure><img src="proj3/imgs/set2/IMG_0824.jpeg" alt="Set 1 source 1"><figcaption>Cyl Set 1 — source</figcaption></figure>
@@ -400,6 +391,13 @@
       <figure class="mosaic-big wide-figure">
         <img src="proj3/mosaic_cyl_set2_out/mosaic_cyl_final.png" alt="Set 1 mosaic">
         <figcaption>Set 1 — Cylindrical mosaic</figcaption>
+      </figure>
+      <div class="sources-row">
+        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0845.jpeg" alt="Set 1 source 1"><figcaption>Cyl Set 2 — source</figcaption></figure>
+        <figure><img src="proj3/mosaic_cyl_set2_out/IMG_0846.jpeg" alt="Set 1 source 2"><figcaption>Cyl Set 2 — source</figcaption></figure>
+      <figure class="mosaic-big wide-figure">
+        <img src="proj3/mosaic_cyl_set2_out/step_01_IMG_0846_cyl.png" alt="Set 1 mosaic">
+        <figcaption>Set 2 — Cylindrical mosaic</figcaption>
       </figure>
       <details>
         <summary>Implementation Highlights</summary>
