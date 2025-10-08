@@ -337,8 +337,7 @@
     <section id="a4">
       <h2>A.4 — Blend the Images into a Mosaic</h2>
       <p>
-        After warping into a common frame, I composite with alpha feathering and weighted averaging.
-        The canvas expands dynamically to fit each new layer.
+        I blend warped images into a single mosaic using alpha-weighted averaging, a straightforward and order-independent compositing technique. Each warped image is stored as an RGBA layer where valid pixels have an alpha value of 1 and transparent regions have 0. When adding a new image, its RGB values (premultiplied by alpha) are accumulated onto the existing canvas, while a parallel weight map tracks how many images contribute to each pixel. The final mosaic is normalized by dividing the accumulated color by the total weights, producing smooth transitions and consistent brightness across overlaps. To align the images before blending, I manually select corresponding feature points between each new image and a fixed reference using a point-clicking tool. These correspondences are used to compute the homography matrix through a least-squares SVD solution of the linearized projective equations, enabling accurate warping of each image into the shared reference frame for seamless mosaicing.
       </p>
 
       <h3>Mosaic Results</h3>
