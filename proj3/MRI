@@ -1,0 +1,53 @@
+# Simulate relative MRI signal for muscle, fat, and CSF
+# using user-proposed parameters at 3T.
+# Assumptions: spin-echo readout; identical proton density (M0=1); 
+# FLAIR uses inversion recovery with TI chosen to null CSF (~2600 ms).
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from math import exp
+
+# Tissue relaxation values at 3T (ms)
+T1 = {"Muscle": 898.0, "Fat": 382.0, "CSF": 3700.0}
+T2 = {"Muscle": 29.0, "Fat": 68.0, "CSF": 1500.0}  # CSF T2 very long; approximate
+
+# Sequences and parameters (ms)
+seqs = {
+    "A_PD": {"TR": 4000.0, "TE": 20.0},
+    "B_T2": {"TR": 4000.0, "TE": 100.0},
+    "C_FLAIR": {"TR": 10000.0, "TE": 100.0, "TI": 2600.0},  # TI ~ T1csf * ln 2
+    "D_T1": {"TR": 400.0, "TE": 10.0},
+}
+
+def signal_spin_echo(TR, TE, T1_ms, T2_ms):
+    # Simple SE: S = (1 - exp(-TR/T1)) * exp(-TE/T2)
+    return (1 - np.exp(-TR / T1_ms)) * np.exp(-TE / T2_ms)
+
+def signal_flair(TR, TE, TI, T1_ms, T2_ms):
+    # IR-SE: S = (1 - 2*exp(-TI/T1) + exp(-TR/T1)) * exp(-TE/T2)
+    return (1 - 2*np.exp(-TI / T1_ms) + np.exp(-TR / T1_ms)) * np.exp(-TE / T2_ms)
+
+rows = []
+for seq_name, params in seqs.items():
+    for tissue in ["Muscle", "Fat", "CSF"]:
+        if seq_name == "C_FLAIR":
+            S = signal_flair(params["TR"], params["TE"], params["TI"], T1[tissue], T2[tissue])
+        else:
+            S = signal_spin_echo(params["TR"], params["TE"], T1[tissue], T2[tissue])
+        rows.append({"Sequence": seq_name, "Tissue": tissue, "Signal (arb.)": S})
+
+df = pd.DataFrame(rows)
+
+# Pivot for a clean table
+table = df.pivot(index="Tissue", columns="Sequence", values="Signal (arb.)")
+# Plot bar charts one by one for clarity
+for seq_name in seqs.keys():
+    plt.figure(figsize=(5,3))
+    sub = df[df["Sequence"] == seq_name]
+    plt.bar(sub["Tissue"], sub["Signal (arb.)"])
+    plt.title(f"{seq_name} signals")
+    plt.ylabel("Relative signal")
+    plt.xlabel("Tissue")
+    plt.tight_layout()
+    plt.show()
