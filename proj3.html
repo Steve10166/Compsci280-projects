@@ -404,101 +404,83 @@
       <p class="note">I follow the Brown et al. MOPS pipeline with simplifications: single-scale Harris, axis-aligned MOPS-style 8×8 descriptors sampled from 40×40 windows, Lowe ratio test, and 4-point RANSAC for robust homographies. I also added an unordered panorama recognizer that groups images by pairwise inliers and stitches each group.</p>
 
       <h3 id="b1">B.1 — Harris + ANMS</h3>
-      <p>Harris responses are computed (skimage’s <code>corner_harris</code>), corners are filtered near borders, and then thinned by Adaptive Non-Maximum Suppression (ANMS) to enforce spatial diversity.</p>
-      <ul>
-        <li>Detector: <code>corner_harris</code> (sigma=1), then discard a 20 px border.</li>
-        <li>ANMS: compute suppression radius per point; keep top-N (e.g., N=500) with largest radii for spatial diversity.</li>
-        <li>Visualization: overlay raw corners and ANMS-filtered points on the color image.</li>
-      </ul>
+      <p>I detect corners with corner_harris (σ=1), discard a 20-px border, then apply Adaptive Non-Maximum Suppression (ANMS) with N=300 and robust=0.95 to keep spatially well-distributed strong points; I visualize both the raw Harris corners and the ANMS-filtered set overlaid on the image.</p>
+
       <div class="grid grid-lg">
         <figure>
-          <img src="proj3/presentables/IMG_0815_before_anms.jpg" alt="Harris corners before ANMS">
+          <img src="proj3/presentables/IMG_0815_before_anms.jpg">
           <figcaption>Detected corners — before ANMS</figcaption>
         </figure>
         <figure>
-          <img src="proj3/presentables/IMG_0815_after_anms.jpg" alt="Harris corners after ANMS">
+          <img src="proj3/presentables/IMG_0815_after_anms.jpg">
           <figcaption>Detected corners — after ANMS</figcaption>
         </figure>
       </div>
 
       <h3 id="b2">B.2 — Feature Descriptors</h3>
       <p>I implement MOPS-style, axis-aligned descriptors: each corner samples a 40×40 window and is anti-aliased down to 8×8, giving a blurred, robust patch. Patches are then bias/gain-normalized (zero mean, unit variance). Rotation invariance and wavelets are omitted by spec.</p>
-      <ul>
-        <li>Windowing: 40×40 around each corner; bilinear sampling to 8×8.</li>
-        <li>Normalization: subtract patch mean; divide by std (with small epsilon).</li>
-        <li>Descriptor: flatten to a 64-D float vector.</li>
-      </ul>
+  
       <figure class="mosaic-big wide-figure">
-        <img src="proj3/presentables/features.png" alt="Sample 8x8 MOPS-style descriptors">
+        <img src="proj3/presentables/features.png">
         <figcaption>Sample normalized 8×8 descriptors (visualized)</figcaption>
       </figure>
 
       <h3 id="b3">B.3 — Feature Matching</h3>
-      <p>Matches are found via SSD in descriptor space with Lowe’s ratio test (k=2). I optionally apply a mutual check and an absolute distance cap for stringency.</p>
+      <p>I match descriptors using SSD with k=2 nearest neighbors and Lowe’s ratio test (threshold 0.7), which filters ambiguous correspondences before RANSAC.</p>
       <figure class="mosaic-big wide-figure">
-        <img src="proj3/presentables/matches_0815_0816.png" alt="Matched features between two images">
+        <img src="proj3/presentables/matches_0815_0816.png">
         <figcaption>Matched features between an image pair (lines drawn across a concatenated view)</figcaption>
       </figure>
 
       <h3 id="b4">B.4 — RANSAC Homography & Mosaics</h3>
-      <p>I implemented a 4-point RANSAC: randomly sample 4 correspondences, estimate a homography with DLT, score inliers by reprojection error, keep the best model, and refit on inliers. Using the homography that maps the second image to the first, I warp with bilinear interpolation and alpha-weighted blending (premultiplied) on a dynamically expanding canvas.</p>
+      <p>I run 4-point RANSAC with DLT, using a 3.0-px reprojection threshold (after downsampling) and refit the homography on the inliers; the resulting H maps the second image into the first, and I stitch by inverse-mapped bilinear warping and order-independent premultiplied-alpha blending on an expanding canvas, then compare the automatic mosaics side-by-side with the Part-A (manual) results.</p>
       <div class="grid viz-grid">
         <figure>
-          <img src="proj3/mosaic_set1_out/step_02_IMG_0817.png" alt="Set 1 — A4 mosaic">
-          <figcaption>Set 1 — A4 mosaic (reference)</figcaption>
+          <img src="proj3/mosaic_set1_out/step_02_IMG_0817.png">
+          <figcaption>Set 1 — Manual mosaic</figcaption>
         </figure>
         <figure>
-          <img src="proj3/presentables/compare1.jpg" alt="Set 1 — automatic mosaic (this part)">
-          <figcaption>Set 1 — automatic mosaic (this part)</figcaption>
+          <img src="proj3/presentables/compare1.jpg">
+          <figcaption>Set 1 — Automatic mosaic</figcaption>
         </figure>
       </div>
       
       <div class="grid viz-grid">
         <figure>
-          <img src="proj3/mosaic_set2_out/step_01_IMG_0846.png" alt="Set 2 — A4 mosaic">
-          <figcaption>Set 2 — A4 mosaic (reference)</figcaption>
+          <img src="proj3/mosaic_set2_out/step_01_IMG_0846.png">
+          <figcaption>Set 2 — Manual mosaic</figcaption>
         </figure>
         <figure>
-          <img src="proj3/presentables/compare_offi.jpg" alt="Set 2 — automatic mosaic (this part)">
-          <figcaption>Set 2 — automatic mosaic (this part)</figcaption>
+          <img src="proj3/presentables/compare_offi.jpg">
+          <figcaption>Set 2 — Automatic mosaic</figcaption>
         </figure>
       </div>
       
       <div class="grid viz-grid">
         <figure>
-          <img src="proj3/mosaic_set2_out/step_01_IMG_0844 2.png" alt="Set 3 — A4 mosaic">
-          <figcaption>Set 3 — A4 mosaic (reference)</figcaption>
+          <img src="proj3/mosaic_set2_out/step_01_IMG_0844 2.png">
+          <figcaption>Set 3 — Manual mosaic</figcaption>
         </figure>
         <figure>
-          <img src="proj3/presentables/compare_meeting.jpg" alt="Set 3 — automatic mosaic (this part)">
-          <figcaption>Set 3 — automatic mosaic (this part)</figcaption>
+          <img src="proj3/presentables/compare_meeting.jpg">
+          <figcaption>Set 3 — Automatic mosaic</figcaption>
         </figure>
       </div>
-      
-      <ul>
-        <li>Model: 4-point RANSAC with DLT; reprojection error threshold tuned to the downsampled resolution.</li>
-        <li>Refit: homography recomputed on inliers after selection.</li>
-        <li>Warp &amp; blend: inverse-mapped bilinear resampling; alpha-weighted, order-independent compositing on an expanding canvas.</li>
-      </ul>
 
       <h3 id="b5">B.5 — Bells &amp; Whistles</h3>
-      <p><b>Panorama recognition from an unordered set:</b> I compute pairwise matches/inliers across all images in a unordered directory, build a connectivity graph using a minimum inlier threshold, choose a reference (highest degree) per connected component, and chain homographies to that reference to stitch each group. Below are three automatically built panoramas.</p>
-      <ul>
-        <li>Pairwise graph: edges kept if inliers ≥ 20 under 4-point RANSAC.</li>
-        <li>Reference choice: highest-degree image in each connected component.</li>
-        <li>Pose chaining: BFS to accumulate homographies to the reference; warp each to the common canvas.</li>
-      </ul>
+      <p>I perform panorama recognition over an unordered directory by computing pairwise inliers with 4-point RANSAC, building a connectivity graph (keep edges with ≥20 inliers), choosing the highest-degree image as the reference in each connected component, chaining homographies to that reference via BFS, and warping/blending all images in the group into a single panorama.</p>
+
       <div class="grid grid-lg">
         <figure>
-          <img src="proj3/presentables/automosaic1.jpg" alt="Automatic panorama 1">
+          <img src="proj3/presentables/automosaic1.jpg">
           <figcaption>Automatic mosaic 1</figcaption>
         </figure>
         <figure>
-          <img src="proj3/presentables/automosaic2.jpg" alt="Automatic panorama 2">
+          <img src="proj3/presentables/automosaic2.jpg">
           <figcaption>Automatic mosaic 2</figcaption>
         </figure>
         <figure>
-          <img src="proj3/presentables/automosaic3.jpg" alt="Automatic panorama 3">
+          <img src="proj3/presentables/automosaic3.jpg">
           <figcaption>Automatic mosaic 3</figcaption>
         </figure>
       </div>
