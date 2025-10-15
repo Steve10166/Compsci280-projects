@@ -405,6 +405,11 @@
 
       <h3 id="b1">B.1 — Harris + ANMS</h3>
       <p>Harris responses are computed (skimage’s <code>corner_harris</code>), corners are filtered near borders, and then thinned by Adaptive Non-Maximum Suppression (ANMS) to enforce spatial diversity.</p>
+      <ul>
+        <li>Detector: <code>corner_harris</code> (sigma=1), then discard a 20 px border.</li>
+        <li>ANMS: compute suppression radius per point; keep top-N (e.g., N=500) with largest radii for spatial diversity.</li>
+        <li>Visualization: overlay raw corners and ANMS-filtered points on the color image.</li>
+      </ul>
       <div class="grid grid-lg">
         <figure>
           <img src="proj3/presentables/IMG_0815_before_anms.jpg" alt="Harris corners before ANMS">
@@ -417,7 +422,12 @@
       </div>
 
       <h3 id="b2">B.2 — Feature Descriptors</h3>
-      <p>I extract axis-aligned 8×8 patches from a 40×40 window centered on each corner (anti-aliased downsample), then bias/gain-normalize (zero mean, unit variance) per patch per the paper. Below are sample patches:</p>
+      <p>I implement MOPS-style, axis-aligned descriptors: each corner samples a 40×40 window and is anti-aliased down to 8×8, giving a blurred, robust patch. Patches are then bias/gain-normalized (zero mean, unit variance). Rotation invariance and wavelets are omitted by spec.</p>
+      <ul>
+        <li>Windowing: 40×40 around each corner; bilinear sampling to 8×8.</li>
+        <li>Normalization: subtract patch mean; divide by std (with small epsilon).</li>
+        <li>Descriptor: flatten to a 64-D float vector.</li>
+      </ul>
       <figure class="mosaic-big wide-figure">
         <img src="proj3/presentables/features.png" alt="Sample 8x8 MOPS-style descriptors">
         <figcaption>Sample normalized 8×8 descriptors (visualized)</figcaption>
@@ -434,21 +444,50 @@
       <p>I implemented a 4-point RANSAC: randomly sample 4 correspondences, estimate a homography with DLT, score inliers by reprojection error, keep the best model, and refit on inliers. Using the homography that maps the second image to the first, I warp with bilinear interpolation and alpha-weighted blending (premultiplied) on a dynamically expanding canvas.</p>
       <div class="grid viz-grid">
         <figure>
-          <img src="proj3/presentables/compare1.jpg" alt="Set 1 manual vs automatic mosaic">
-          <figcaption>Set 1 — manual vs automatic comparison</figcaption>
+          <img src="proj3/mosaic_set1_out/step_02_IMG_0817.png" alt="Set 1 — A4 mosaic">
+          <figcaption>Set 1 — A4 mosaic (reference)</figcaption>
         </figure>
         <figure>
-          <img src="proj3/presentables/compare_offi.jpg" alt="Set 2 manual vs automatic mosaic">
-          <figcaption>Set 2 — manual vs automatic comparison</figcaption>
-        </figure>
-        <figure>
-          <img src="proj3/presentables/compare_meeting.jpg" alt="Set 3 manual vs automatic mosaic">
-          <figcaption>Set 3 — manual vs automatic comparison</figcaption>
+          <img src="proj3/presentables/compare1.jpg" alt="Set 1 — automatic mosaic (this part)">
+          <figcaption>Set 1 — automatic mosaic (this part)</figcaption>
         </figure>
       </div>
+      
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj3/mosaic_set2_out/step_01_IMG_0846.png" alt="Set 2 — A4 mosaic">
+          <figcaption>Set 2 — A4 mosaic (reference)</figcaption>
+        </figure>
+        <figure>
+          <img src="proj3/presentables/compare_offi.jpg" alt="Set 2 — automatic mosaic (this part)">
+          <figcaption>Set 2 — automatic mosaic (this part)</figcaption>
+        </figure>
+      </div>
+      
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj3/mosaic_set2_out/step_01_IMG_0844 2.png" alt="Set 3 — A4 mosaic">
+          <figcaption>Set 3 — A4 mosaic (reference)</figcaption>
+        </figure>
+        <figure>
+          <img src="proj3/presentables/compare_meeting.jpg" alt="Set 3 — automatic mosaic (this part)">
+          <figcaption>Set 3 — automatic mosaic (this part)</figcaption>
+        </figure>
+      </div>
+      
+      <ul>
+        <li>Model: 4-point RANSAC with DLT; reprojection error threshold tuned to the downsampled resolution.</li>
+        <li>Refit: homography recomputed on inliers after selection.</li>
+        <li>Warp &amp; blend: inverse-mapped bilinear resampling; alpha-weighted, order-independent compositing on an expanding canvas.</li>
+      </ul>
 
       <h3 id="b5">B.5 — Bells &amp; Whistles</h3>
-      <p><b>Panorama recognition from an unordered set:</b> I compute pairwise matches/inliers across all images, build a connectivity graph using a minimum inlier threshold, choose a reference (highest degree) per connected component, and chain homographies to that reference to stitch each group. Below are three automatically built panoramas.</p>
+      <p><b>Panorama recognition from an unordered set:</b> I compute pairwise matches/inliers across all images in a unordered directory, build a connectivity graph using a minimum inlier threshold, choose a reference (highest degree) per connected component, and chain homographies to that reference to stitch each group. Below are three automatically built panoramas.</p>
+      <ul>
+        <li>Pairwise graph: edges kept if inliers ≥ 20 under 4-point RANSAC.</li>
+        <li>Reference choice: highest-degree image in each connected component.</li>
+        <li>Pose chaining: BFS to accumulate homographies to the reference; warp each to the common canvas.</li>
+      </ul>
       <div class="grid grid-lg">
         <figure>
           <img src="proj3/presentables/automosaic1.jpg" alt="Automatic panorama 1">
@@ -463,17 +502,6 @@
           <figcaption>Automatic mosaic 3</figcaption>
         </figure>
       </div>
-
-      <details>
-        <summary>Implementation notes</summary>
-        <ul>
-          <li><b>B.1</b>: Harris via <code>corner_harris</code>; ANMS retains top-N corners with large suppression radii for spatial coverage.</li>
-          <li><b>B.2</b>: 40×40 window → anti-aliased downsample to 8×8; per-patch zero-mean/unit-variance normalization.</li>
-          <li><b>B.3</b>: SSD matching with Lowe ratio; optional mutual check and absolute distance gate.</li>
-          <li><b>B.4</b>: 4-point RANSAC homography (DLT) with inlier refit; inverse warping (bilinear); alpha-weighted, order-independent blending.</li>
-          <li><b>B.5</b>: Unordered panorama recognition via inlier-graph components and BFS chaining of homographies to a reference.</li>
-        </ul>
-      </details>
     </section>
   </main>
 </body>
