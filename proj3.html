@@ -396,6 +396,85 @@
         <figcaption>Set 2 — Cylindrical mosaic</figcaption>
       </figure>
     </section>
+</section>
+    
+    <!-- Part B -->
+    <section id="partB">
+      <h2>Part B — Autostitching (Brown et al., simplified)</h2>
+      <p class="note">I follow the Brown et al. MOPS pipeline with simplifications: single-scale Harris, axis-aligned MOPS-style 8×8 descriptors sampled from 40×40 windows, Lowe ratio test, and 4-point RANSAC for robust homographies. I also added an unordered panorama recognizer that groups images by pairwise inliers and stitches each group.</p>
+
+      <h3 id="b1">B.1 — Harris + ANMS</h3>
+      <p>Harris responses are computed (skimage’s <code>corner_harris</code>), corners are filtered near borders, and then thinned by Adaptive Non-Maximum Suppression (ANMS) to enforce spatial diversity.</p>
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj3/presentables/IMG_0815_before_anms.jpg" alt="Harris corners before ANMS">
+          <figcaption>Detected corners — before ANMS</figcaption>
+        </figure>
+        <figure>
+          <img src="proj3/presentables/IMG_0815_after_anms.jpg" alt="Harris corners after ANMS">
+          <figcaption>Detected corners — after ANMS</figcaption>
+        </figure>
+      </div>
+
+      <h3 id="b2">B.2 — Feature Descriptors</h3>
+      <p>I extract axis-aligned 8×8 patches from a 40×40 window centered on each corner (anti-aliased downsample), then bias/gain-normalize (zero mean, unit variance) per patch per the paper. Below are sample patches:</p>
+      <figure class="mosaic-big wide-figure">
+        <img src="proj3/presentables/features.png" alt="Sample 8x8 MOPS-style descriptors">
+        <figcaption>Sample normalized 8×8 descriptors (visualized)</figcaption>
+      </figure>
+
+      <h3 id="b3">B.3 — Feature Matching</h3>
+      <p>Matches are found via SSD in descriptor space with Lowe’s ratio test (k=2). I optionally apply a mutual check and an absolute distance cap for stringency.</p>
+      <figure class="mosaic-big wide-figure">
+        <img src="proj3/presentables/matches_0815_0816.png" alt="Matched features between two images">
+        <figcaption>Matched features between an image pair (lines drawn across a concatenated view)</figcaption>
+      </figure>
+
+      <h3 id="b4">B.4 — RANSAC Homography & Mosaics</h3>
+      <p>I implemented a 4-point RANSAC: randomly sample 4 correspondences, estimate a homography with DLT, score inliers by reprojection error, keep the best model, and refit on inliers. Using the homography that maps the second image to the first, I warp with bilinear interpolation and alpha-weighted blending (premultiplied) on a dynamically expanding canvas.</p>
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj3/presentables/compare1.jpg" alt="Set 1 manual vs automatic mosaic">
+          <figcaption>Set 1 — manual vs automatic comparison</figcaption>
+        </figure>
+        <figure>
+          <img src="proj3/presentables/compare_offi.jpg" alt="Set 2 manual vs automatic mosaic">
+          <figcaption>Set 2 — manual vs automatic comparison</figcaption>
+        </figure>
+        <figure>
+          <img src="proj3/presentables/compare_meeting.jpg" alt="Set 3 manual vs automatic mosaic">
+          <figcaption>Set 3 — manual vs automatic comparison</figcaption>
+        </figure>
+      </div>
+
+      <h3 id="b5">B.5 — Bells &amp; Whistles</h3>
+      <p><b>Panorama recognition from an unordered set:</b> I compute pairwise matches/inliers across all images, build a connectivity graph using a minimum inlier threshold, choose a reference (highest degree) per connected component, and chain homographies to that reference to stitch each group. Below are three automatically built panoramas.</p>
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj3/presentables/automosaic1.jpg" alt="Automatic panorama 1">
+          <figcaption>Automatic mosaic 1</figcaption>
+        </figure>
+        <figure>
+          <img src="proj3/presentables/automosaic2.jpg" alt="Automatic panorama 2">
+          <figcaption>Automatic mosaic 2</figcaption>
+        </figure>
+        <figure>
+          <img src="proj3/presentables/automosaic3.jpg" alt="Automatic panorama 3">
+          <figcaption>Automatic mosaic 3</figcaption>
+        </figure>
+      </div>
+
+      <details>
+        <summary>Implementation notes</summary>
+        <ul>
+          <li><b>B.1</b>: Harris via <code>corner_harris</code>; ANMS retains top-N corners with large suppression radii for spatial coverage.</li>
+          <li><b>B.2</b>: 40×40 window → anti-aliased downsample to 8×8; per-patch zero-mean/unit-variance normalization.</li>
+          <li><b>B.3</b>: SSD matching with Lowe ratio; optional mutual check and absolute distance gate.</li>
+          <li><b>B.4</b>: 4-point RANSAC homography (DLT) with inlier refit; inverse warping (bilinear); alpha-weighted, order-independent blending.</li>
+          <li><b>B.5</b>: Unordered panorama recognition via inlier-graph components and BFS chaining of homographies to a reference.</li>
+        </ul>
+      </details>
+    </section>
   </main>
 </body>
 </html>
