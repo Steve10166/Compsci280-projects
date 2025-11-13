@@ -300,7 +300,7 @@
       <div class="grid viz-grid">
         <figure>
           <img src="proj4/results/truck/val0_it0.png" alt="val0 it0">
-          <figcaption>Iteration 0 — noisy initialization; no structure yet.</figcaption>
+          <figcaption>Iteration 0 — initialization; no structure yet.</figcaption>
         </figure>
         <figure>
           <img src="proj4/results/truck/val0_it200.png" alt="val0 it200">
@@ -347,4 +347,106 @@
 
       <figure class="mosaic-big wide-figure">
         <img src="proj4/results/depth.gif" alt="Lego depth map orbit gif">
-        <figcaption>Depth map or
+        <figcaption>Depth map orbit for the Lego scene — closer surfaces appear brighter, background is darker.</figcaption>
+      </figure>
+    </section>
+
+    <!-- Part 2.6 -->
+    <section id="part26">
+      <h2>Part 2.6 — Training NeRF with My Own Data (AirPods)</h2>
+
+      <h3>2.6.1 Dataset &amp; Capture</h3>
+      <p>
+        I captured my own multi-view dataset of an AirPods case by moving my calibrated camera around the object while
+        roughly keeping it near the center of the frame. I reused the calibration from Part 0 to estimate camera poses,
+        and then packed the images and poses into the same NPZ format as the Lego dataset.
+      </p>
+
+      <div class="sources-row">
+        <figure>
+          <img src="proj4/airpods/IMG_1429.jpeg" alt="Airpods reference photo">
+          <figcaption>Reference photo of my AirPods scene used for NeRF training.</figcaption>
+        </figure>
+      </div>
+
+      <h3>2.6.2 Training Settings &amp; Changes</h3>
+      <p>
+        For my own dataset, I largely reused the same NeRF architecture as the Lego experiment, but made a few changes:
+      </p>
+      <ul>
+        <li>Data Preprocessing Pipeline:
+        <ul>
+        <li><b>Camera Calibration:</b> The process starts by calibrating the camera, using a directory of ArUco marker images to compute the camera's intrinsic matrix (K) and distortion coefficients (dist).</li>
+        <li><b>Pose Estimation:</b> Next, a separate set of "airpods" images is processed. The ArUco marker is detected in each frame to solve the Perspective-n-Point (PnP) problem, which estimates the 6D camera pose (camera-to-world matrix).</li>
+        <li><b>NeRF Data Preparation:</b> With camera parameters and poses known, the script prepares the data for NeRF by first undistorting and cropping each "airpods" image using the calibration data.</li>
+        <li><b>Downscaling:</b> Each image is then resized to 10% of its original size to speed up processing.</li>
+        <li><b>Camera Matrix Adjustment:</b> The camera's intrinsic matrix (K) is mathematically adjusted to match this new cropped and downscaled resolution.</li>
+        <li><b>Final Dataset Creation:</b> Finally, the complete dataset of processed images and their corresponding poses is split into training, validation, and test sets, which are then saved as a single <code>.npz</code> file ready for training.</li>
+        </ul>
+        </li>
+        <li>Kept the same positional encoding and MLP depth, but tuned the learning rate and near/far range to match the AirPods scene scale. Specifically, I eventually decided on 0.08 for near and 0.4 for far, and used a 0.0005 learning rate.</li>
+        <li>Adjusted the sampling bounds so that most rays intersect the object rather than the far background.</li>
+        <li>Trained for more iterations (10000 iterations) to compensate for fewer views and some pose noise.</li>
+        </ul>
+      <p>
+        Overall, the scene is more challenging than the synthetic Lego (real lighting, slight pose errors, and specular
+        highlights, and human error in taking the pictures), so the reconstruction is not perfect — but I tried my best.
+      </p>
+
+      <h3>2.6.3 Training Loss Curve</h3>
+      <p>
+        The following plot shows the training loss over iterations. The loss decreases quickly at the beginning as the
+        model captures coarse geometry and color, then slowly tapers off as it tries to refine fine details and handle
+        noisy views. I think it also overfit to the training data because the training loss gets more and more perfect while the validation loss begins to drop. I have tried lowering the learning rate but struggled to find a balance between good visualization results and good training PSNR.
+      </p>
+
+      <figure class="mosaic-big wide-figure">
+        <img src="proj4/results/training_metrics.png" alt="Airpods training loss curve">
+        <figcaption>Training loss and PSNR vs iterations for my AirPods NeRF.</figcaption>
+      </figure>
+      <figure class="mosaic-big wide-figure">
+        <img src="proj4/results/val_psnr_curve.png" alt="Airpods training loss curve">
+        <figcaption>validation psnr vs iterations for my AirPods NeRF.</figcaption>
+      </figure>
+
+      <h3>2.6.4 Intermediate Renders During Training</h3>
+      <p>
+        Similar to the Lego experiment, I rendered a fixed validation camera (view 0) at various iterations to
+        qualitatively monitor progress:
+      </p>
+
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj4/results/airpods/val0_it100.png" alt="Airpods val0 it100">
+          <figcaption>Iteration 100 — the silhouette is barely visible.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/airpods/val0_it500.png" alt="Airpods val0 it500">
+          <figcaption>Iteration 500 — basic shape appears, colors roughly correct.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/airpods/val0_it1000.png" alt="Airpods val0 it1000">
+          <figcaption>Iteration 1000 — sharper edges and more consistent background.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/airpods/val0_it10000.png" alt="Airpods val0 it10000">
+          <figcaption>Iteration 10000 — final render; some artifacts remain, but overall geometry is reasonable. I can see the airpod's shape and color clearly.</figcaption>
+        </figure>
+      </div>
+
+      <h3>2.6.5 Novel-view Orbit GIF</h3>
+      <p>
+        Finally, I rendered an orbit of the camera around the AirPods object using the learned NeRF. The camera moves in
+        a circle while looking at the object center, producing a smooth novel-view sequence. Some minor flickering and
+        blurring remain due to limited data and imperfect poses, but the model still captures the main geometry and
+        appearance — this is my “I tried my best” moment.
+      </p>
+
+      <figure class="mosaic-big wide-figure">
+        <img src="proj4/results/orbit.gif" alt="Airpods NeRF orbit gif">
+        <figcaption>Novel-view orbit of my AirPods scene using the trained NeRF.</figcaption>
+      </figure>
+    </section>
+  </main>
+</body>
+</html>
