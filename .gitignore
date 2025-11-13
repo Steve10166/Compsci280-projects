@@ -1,1 +1,7 @@
 *.py
+/proj4/airpods
+/proj4/calibration
+/proj4/calibration_output
+/proj4/lafufu
+/proj4/nerf_out
+/proj4/nf2d_out

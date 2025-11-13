@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CS280 — Project 4: Neural Fields & Neural Radiance Fields</title>
+  <style>
+    :root{
+      --bg:#f9f9f9; --text:#333; --muted:#666;
+      --brand:#16a085; --brandDark:#0f7c67; --head:#2c3e50;
+      --card:#fff; --shadow:0 2px 8px rgba(0,0,0,.12);
+      --border:#eee;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);margin:0}
+    a{color:var(--brandDark);text-decoration:none}
+    a:hover{text-decoration:underline}
+    header{padding:28px 20px 10px}
+    .wrap{max-width:1400px;margin:0 auto;padding:0 20px 40px}
+    h1{color:var(--head);margin:0 0 6px}
+    .sub{color:var(--muted);margin:0 0 18px}
+    section{background:var(--card);box-shadow:var(--shadow);border-radius:14px;padding:22px;margin:18px 0}
+    h2{color:var(--brand);margin:0 0 12px}
+    h3{color:var(--head);margin:18px 0 8px}
+    p{line-height:1.65}
+    .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:8px}
+    figure{margin:0;background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+    figure img{width:100%;height:auto;display:block}
+    figcaption{padding:8px 10px;font-size:.92rem;color:var(--muted)}
+    details{background:#fafafa;border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+    details>summary{font-weight:600;color:var(--head);cursor:pointer;margin:-4px 0 8px}
+    .note{font-size:.92rem;color:var(--muted)}
+    code.kbd{background:#f1f1f1;border:1px solid #e5e5e5;padding:2px 6px;border-radius:6px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border:1px solid #e6e6e6;padding:8px 10px;text-align:left;font-size:.95rem}
+    th{background:#fbfbfb}
+    .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .toc a{background:#fff;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:.9rem}
+
+    /* --- Helpers reused from P3 --- */
+    .grid-sm{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+    .thumb-sm img{max-width:160px;margin:0 auto}
+    .group-title{margin:8px 0 4px;color:var(--head);font-weight:700}
+
+    .viz-grid{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+    .viz-grid figure img{width:100%}
+
+    .grid-lg{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+    .wide-figure img{width:100%;max-width:1650px;margin:0 auto;display:block}
+
+    .sources-row{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+    .sources-row figure img{max-width:200px;margin:0 auto}
+    .mosaic-big{margin-top:12px}
+    .mosaic-big img{width:100%;max-width:1000px;margin:0 auto;display:block}
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <h1>Project 4 — Neural Fields &amp; Neural Radiance Fields</h1>
+    <p class="sub">
+      Camera calibration, 2D neural fields, and multi-view Neural Radiance Fields (NeRF) on both the provided Lego scene and my own capture.
+    </p>
+    <nav class="toc">
+      <a href="#overview">Overview</a>
+      <a href="#part0">Part 0 — Calibration &amp; 3D Scanning</a>
+      <a href="#part1">Part 1 — 2D Neural Field</a>
+      <a href="#part2">Part 2 — NeRF on Lego</a>
+      <a href="#part26">Part 2.6 — My Own Data</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- Overview -->
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>
+        In this project, I start from physical camera calibration and 3D scanning, then move to fitting coordinate-based
+        neural fields to a single image, and finally train a full Neural Radiance Field (NeRF) from multi-view images.
+        I first fit a 2D neural field that maps image coordinates to RGB, explore different positional encoding frequencies
+        and network widths, and analyze convergence with PSNR curves. In Part 2, I fit a NeRF to the given Lego dataset:
+        implementing ray sampling, volumetric rendering, and optimization, and visualizing rays, training progression, PSNR
+        on a validation set, and spherical renderings. Lastly, I repeat the NeRF pipeline on my own AirPods scene and
+        generate a novel-view orbit; the results are a bit imperfect, but I tried my best.
+      </p>
+    </section>
+
+    <!-- Part 0 -->
+    <section id="part0">
+      <h2>Part 0 — Camera Calibration &amp; 3D Scanning</h2>
+      <p>
+        I first calibrated my real camera and used the resulting intrinsics and extrinsics to construct frustums and point
+        clouds in 3D. The calibration parameters and poses are then used later for my own NeRF capture. Below are two
+        snapshots of the camera frustum visualization in Viser, showing the reconstructed camera trajectory and sparse 3D
+        structure.
+      </p>
+
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj4/results/cloud1.png" alt="Camera frustums and 3D points 1">
+          <figcaption>Camera frustums and reconstructed 3D points (view 1).</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/cloud2.png" alt="Camera frustums and 3D points 2">
+          <figcaption>Camera frustums and reconstructed 3D points (view 2) with a slightly different orbit.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Part 1 -->
+    <section id="part1">
+      <h2>Part 1 — Fit a Neural Field to a 2D Image</h2>
+
+      <h3>1.1 Model Architecture &amp; Hyperparameters</h3>
+      <p>
+        I fit a coordinate-based neural field that maps normalized 2D image coordinates to RGB values. The core training
+        function I used is:
+      </p>
+      <pre><code>psnr_hist, final_img, psnr_curve = train_nf(
+    img_np=img_ref,
+    image_name="provided",
+    L=1,
+    width=24,
+    depth=4,
+    iters=1500,
+    bs=10_000,
+    lr=1e-2,
+    snaps=(0,100,500,1000,1500)
+)</code></pre>
+      <p>
+        I experimented with different positional encoding frequencies and widths: <code>L ∈ {1, 10}</code> and
+        <code>width ∈ {24, 128}</code>. The table summarizes the main configuration I used as a baseline:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Depth (hidden layers)</td><td>4 fully-connected layers</td></tr>
+          <tr><td>Width</td><td>24 or 128 hidden units</td></tr>
+          <tr><td>Positional encoding frequencies L</td><td>1 or 10 (on 2D coordinates)</td></tr>
+          <tr><td>Activation</td><td>ReLU between layers</td></tr>
+          <tr><td>Optimizer</td><td>Adam</td></tr>
+          <tr><td>Learning rate</td><td>1e-2</td></tr>
+          <tr><td>Batch size</td><td>10,000 pixel samples per iteration</td></tr>
+          <tr><td>Iterations</td><td>1,500</td></tr>
+          <tr><td>Loss</td><td>MSE between predicted RGB and ground truth</td></tr>
+        </tbody>
+      </table>
+
+      <h3>1.2 Datasets: Provided Image &amp; My Own Image</h3>
+      <p>
+        I trained the 2D neural field on the provided “fox” image and on one of my own photos (AirPods). These are the
+        reference images:
+      </p>
+
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj4/test.jpg" alt="Provided test fox image">
+          <figcaption>Provided test image (fox).</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/airpods/IMG_1410.jpeg" alt="My own AirPods image">
+          <figcaption>My own 2D image (AirPods) for neural field fitting.</figcaption>
+        </figure>
+      </div>
+
+      <h3>1.3 Training Progression — Provided Image</h3>
+      <p>
+        Below I visualize training progression for the fox image, focusing on the higher-capacity model with
+        <code>L = 10</code> and <code>width = 128</code>. The model gradually sharpens edges and recovers fine fur
+        textures as training proceeds.
+      </p>
+
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj4/results/fox2d/provided_L10_W128_it0.png" alt="Iter 0">
+          <figcaption>Iteration 0 — random initialization.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/fox2d/provided_L10_W128_it100.png" alt="Iter 100">
+          <figcaption>Iteration 100 — coarse colors and layout appear.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/fox2d/provided_L10_W128_it500.png" alt="Iter 500">
+          <figcaption>Iteration 500 — details and edges become sharper.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/fox2d/provided_L10_W128_it1500.png" alt="Iter 1500">
+          <figcaption>Iteration 1500 — final reconstruction for L=10, W=128.</figcaption>
+        </figure>
+      </div>
+
+      <h3>1.4 Training Progression — My Own Image (AirPods)</h3>
+      <p>
+        I repeated the same procedure on my own AirPods photo, again visualizing the model with <code>L = 10</code> and
+        <code>width = 128</code>. The network learns global color and shape first, then refines highlights and edges.
+      </p>
+
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj4/results/airpods2d/mine_L10_W128_it0.png" alt="Airpods it0">
+          <figcaption>Iteration 0 — random output.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/airpods2d/mine_L10_W128_it100.png" alt="Airpods it100">
+          <figcaption>Iteration 100 — rough silhouettes and colors.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/airpods2d/mine_L10_W128_it500.png" alt="Airpods it500">
+          <figcaption>Iteration 500 — more consistent shading.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/airpods2d/mine_L10_W128_it1500.png" alt="Airpods it1500">
+          <figcaption>Iteration 1500 — final neural field reconstruction of my AirPods.</figcaption>
+        </figure>
+      </div>
+
+      <h3>1.5 Effect of Positional Encoding Frequency &amp; Width</h3>
+      <p>
+        To study model capacity, I trained neural fields for all 4 combinations of
+        <code>L ∈ {1, 10}</code> and <code>width ∈ {24, 128}</code> on the fox image. Below is a 2×2 grid of final
+        reconstructions after 1500 iterations.
+      </p>
+
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj4/results/fox2d/provided_L1_W24_it1500.png" alt="L1 W24">
+          <figcaption>L = 1, width = 24 — limited high-frequency details; image is blurry.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/fox2d/provided_L1_W128_it1500.png" alt="L1 W128">
+          <figcaption>L = 1, width = 128 — sharper than W=24, but still missing very fine details.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/fox2d/provided_L10_W24_it1500.png" alt="L10 W24">
+          <figcaption>L = 10, width = 24 — captures more high-frequency structure, but capacity is slightly constrained.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/fox2d/provided_L10_W128_it1500.png" alt="L10 W128">
+          <figcaption>L = 10, width = 128 — best reconstruction; fine fur details and edges are preserved.</figcaption>
+        </figure>
+      </div>
+
+      <h3>1.6 PSNR Curve for Single-Image Training</h3>
+      <p>
+        Finally, I plotted PSNR over iterations for the fox image with the high-capacity model
+        (<code>L = 10</code>, <code>width = 128</code>). PSNR rapidly increases early on as the model captures global
+        colors and structure, then gradually plateaus as it refines high-frequency details.
+      </p>
+
+      <figure class="mosaic-big wide-figure">
+        <img src="proj4/results/fox2d/provided_L10_W128_psnr.png" alt="PSNR curve for fox image">
+        <figcaption>PSNR vs iteration for the fox image — higher positional encoding frequency and width give better convergence.</figcaption>
+      </figure>
+    </section>
+
+    <!-- Part 2 -->
+    <section id="part2">
+      <h2>Part 2 — Neural Radiance Field from Multi-view Images (Lego)</h2>
+
+      <h3>2.1 Implementation Overview</h3>
+      <p>
+        For the multi-view Lego scene, I implemented a standard NeRF pipeline:
+      </p>
+      <ul>
+        <li><b>Ray generation:</b> For each pixel, I used the camera intrinsics and extrinsics to construct origin and direction, then sampled points along the ray within a near/far range.</li>
+        <li><b>Neural network:</b> I used the starter NeRF-style MLP with positional encoding on 3D positions (and view directions), predicting density and RGB at each sample.</li>
+        <li><b>Volumetric rendering:</b> I integrated colors along each ray using alpha compositing with transmittance weights to obtain the final pixel color and depth.</li>
+        <li><b>Loss &amp; optimization:</b> The network is optimized with Adam using an MSE loss between rendered and ground-truth pixels, sampling a random batch of rays each iteration.</li>
+        <li><b>Validation &amp; monitoring:</b> I render held-out validation views periodically, track PSNR, and save example images across iterations.</li>
+      </ul>
+
+      <h3>2.2 Rays, Samples, and Camera Visualization</h3>
+      <p>
+        To verify that my camera poses, intrinsics, and ray sampler were correct, I visualized a subset of cameras,
+        rays, and sampled points in 3D. This helped debug coordinate frame issues before training.
+      </p>
+
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj4/results/render.png" alt="Rays and cameras visualization">
+          <figcaption>Cameras, frustums, and a subset of rays with samples for the Lego scene.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/render_single.png" alt="Single-camera ray visualization">
+          <figcaption>Closer view of per-ray samples emanating from a single camera.</figcaption>
+        </figure>
+      </div>
+
+      <h3>2.3 Training Progression on the Lego Scene</h3>
+      <p>
+        During training, I periodically rendered one validation view of the truck/Lego scene from the held-out
+        <code>val0</code> camera. The images below show how the reconstruction quality improves with more iterations.
+      </p>
+
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj4/results/truck/val0_it0.png" alt="val0 it0">
+          <figcaption>Iteration 0 — noisy initialization; no structure yet.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/truck/val0_it200.png" alt="val0 it200">
+          <figcaption>Iteration 200 — coarse geometry and colors appear.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/truck/val0_it400.png" alt="val0 it400">
+          <figcaption>Iteration 400 — sharper edges, recognizable Lego truck.</figcaption>
+        </figure>
+        <figure>
+          <img src="proj4/results/truck/val0_it800.png" alt="val0 it800">
+          <figcaption>Iteration 800 — textures become crisper and background stabilizes.</figcaption>
+        </figure>
+      </div>
+
+      <h3>2.4 PSNR on the Validation Set</h3>
+      <p>
+        I tracked PSNR on the validation view over training. The curve shows a rapid rise early in training,
+        followed by slower improvements as the model refines small details and reduces residual noise.
+      </p>
+
+      <figure class="mosaic-big wide-figure">
+        <img src="proj4/results/truck/val_psnr_curve.png" alt="Lego validation PSNR curve">
+        <figcaption>PSNR curve on the Lego validation set across training iterations.</figcaption>
+      </figure>
+
+      <h3>2.5 Spherical Rendering Video (Lego)</h3>
+      <p>
+        After training converged, I evaluated the NeRF by rendering a spherical orbit around the Lego scene: the
+        camera position moves on a sphere while always looking at the object center. This tests how well the radiance
+        field generalizes to novel viewpoints.
+      </p>
+
+      <figure class="mosaic-big wide-figure">
+        <img src="proj4/results/test.gif" alt="Lego spherical orbit gif">
+        <figcaption>Spherical orbit around the Lego truck using the learned NeRF.</figcaption>
+      </figure>
+
+      <h3>2.6 Depth Map Video (Bells &amp; Whistles, CS280A)</h3>
+      <p>
+        As an extra visualization, I rendered a depth map sequence along the same orbit. Depth is encoded as a single
+        channel (mapped to grayscale) using the expected depth along each ray under the same volumetric weights.
+      </p>
+
+      <figure class="mosaic-big wide-figure">
+        <img src="proj4/results/depth.gif" alt="Lego depth map orbit gif">
+        <figcaption>Depth map or
