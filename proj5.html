@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CS180 — Project 5: The Power of Diffusion Models</title>
+  <style>
+    :root{
+      --bg:#f9f9f9; --text:#333; --muted:#666;
+      --brand:#16a085; --brandDark:#0f7c67; --head:#2c3e50;
+      --card:#fff; --shadow:0 2px 8px rgba(0,0,0,.12);
+      --border:#eee;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);margin:0}
+    a{color:var(--brandDark);text-decoration:none}
+    a:hover{text-decoration:underline}
+    header{padding:28px 20px 10px}
+    .wrap{max-width:1400px;margin:0 auto;padding:0 20px 40px}
+    h1{color:var(--head);margin:0 0 6px}
+    .sub{color:var(--muted);margin:0 0 18px}
+    section{background:var(--card);box-shadow:var(--shadow);border-radius:14px;padding:22px;margin:18px 0}
+    h2{color:var(--brand);margin:0 0 12px}
+    h3{color:var(--head);margin:18px 0 8px}
+    p{line-height:1.65}
+    .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:8px}
+    figure{margin:0;background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+    figure img{width:100%;height:auto;display:block}
+    figcaption{padding:8px 10px;font-size:.92rem;color:var(--muted)}
+    details{background:#fafafa;border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+    details>summary{font-weight:600;color:var(--head);cursor:pointer;margin:-4px 0 8px}
+    .note{font-size:.92rem;color:var(--muted)}
+    code.kbd{background:#f1f1f1;border:1px solid #e5e5e5;padding:2px 6px;border-radius:6px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border:1px solid #e6e6e6;padding:8px 10px;text-align:left;font-size:.95rem}
+    th{background:#fbfbfb}
+    .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .toc a{background:#fff;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:.9rem}
+
+    /* Helpers */
+    .grid-sm{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+    .grid-lg{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+    .viz-grid{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+    .wide-figure img{width:100%;max-width:1650px;margin:0 auto;display:block}
+    .mosaic-big{margin-top:12px}
+    .mosaic-big img{width:100%;max-width:1000px;margin:0 auto;display:block}
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <h1>Project 5 — The Power of Diffusion Models</h1>
+    <p class="sub">
+      Exploring forward and reverse diffusion, denoising, sampling, guidance, image editing, inpainting,
+      and optical illusions using the DeepFloyd IF model.
+    </p>
+    <nav class="toc">
+      <a href="#overview">Overview</a>
+      <a href="#part0">Part 0 — Setup &amp; Prompts</a>
+      <a href="#part11">1.1 Forward Process</a>
+      <a href="#part12">1.2 Classical Denoising</a>
+      <a href="#part13">1.3 One-Step Denoising</a>
+      <a href="#part14">1.4 Iterative Denoising</a>
+      <a href="#part15">1.5 Sampling</a>
+      <a href="#part16">1.6 CFG</a>
+      <a href="#part17">1.7 Image-to-Image</a>
+      <a href="#part171">1.7.1 Drawn/Web Images</a>
+      <a href="#part172">1.7.2 Inpainting</a>
+      <a href="#part173">1.7.3 Text-Conditional I2I</a>
+      <a href="#part18">1.8 Visual Anagrams</a>
+      <a href="#part19">1.9 Hybrid Images</a>
+      <a href="#part2">Part 2 — Bells &amp; Whistles</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- Overview -->
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>
+        In this project I work with a pretrained DeepFloyd IF diffusion model. I first implement
+        the forward noising process and several denoising strategies (Gaussian blur, one-step UNet
+        denoising, and iterative denoising). Then I use the model for sampling and classifier-free
+        guidance (CFG), followed by a series of editing tasks: image-to-image translation, inpainting,
+        text-conditional editing, visual anagrams, and hybrid images. Finally, I implement some bonus
+        “bells &amp; whistles” extensions.
+      </p>
+      <p class="note">
+        Throughout the page I use a fixed random seed 100, as provided in the notebook, and keep all images at
+        <code>64&times;64</code> resolution from the first stage of DeepFloyd, unless otherwise noted.
+      </p>
+    </section>
+
+    <!-- Part 0: Setup -->
+    <section id="part0">
+      <h2>Part 0 — Setup &amp; Playing with Prompts</h2>
+      <p>
+        I set up access to DeepFloyd IF via Hugging Face, generated prompt embeddings using the
+        provided clusters, and experimented with several prompts related to San Francisco / Berkeley
+        and a few more creative phrases.
+      </p>
+
+      <h3>Prompts &amp; Initial Samples</h3>
+      <p>
+        Here are a few of the initial text-to-image samples I generated while exploring different
+        prompts and inference steps. These are just for fun and to get a sense of the model’s behavior.
+      </p>
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj5/result/yose_20iter.png" alt="Text-conditioned samples">
+          <figcaption>
+            20 iterations Prompt: a lithograph of Yosemite.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="proj5/result/chinatown_20iter.png" alt="CFG example">
+          <figcaption>
+            20 iterations, Prompt: a photo of San Francisco Chinatown.
+          </figcaption>
+        </figure>
+        <figure>
+            <img src="proj5/result/gg_20iter.png" alt="CFG example">
+            <figcaption>
+            20 iterations, Prompt: a high quality picture of the Golden Gate Bridge.
+            </figcaption>
+          </figure>
+      </div>
+      <p>
+        Below are images at 5 iterations, they appear much more noised.
+      </p>
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj5/result/yosemite_5.jpg" alt="Text-conditioned samples">
+          <figcaption>
+            5 iterations Prompt: a lithograph of Yosemite.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="proj5/result/ct_5.jpg" alt="CFG example">
+          <figcaption>
+            5 iterations, Prompt: a photo of San Francisco Chinatown.
+          </figcaption>
+        </figure>
+        <figure>
+            <img src="proj5/result/gg_5.jpg" alt="CFG example">
+            <figcaption>
+            5 iterations, Prompt: a high quality picture of the Golden Gate Bridge.
+            </figcaption>
+          </figure>
+      </div>
+    </section>
+
+    <!-- 1.1 Forward Process -->
+    <section id="part11">
+      <h2>1.1 Forward Process</h2>
+      <p>
+        I implemented the forward diffusion process <code>forward(im, t)</code>, which takes a clean
+        Campanile image and produces noisy versions at different timesteps using the provided
+        <code>alphas_cumprod</code> schedule.
+      </p>
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj5/result/add_noise.png" alt="Forward process visualization">
+          <figcaption>
+            Visualization of the forward process: clean image vs progressively noisier images.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="proj5/result/t90.png" alt="Noisy Campanile at t=90">
+          <figcaption>Campanile at one example noise level (e.g., t = 90).</figcaption>
+        </figure>
+        <figure>
+          <img src="proj5/result/t240.png" alt="Noisy Campanile at t=240">
+          <figcaption>Campanile at a higher noise level (e.g., t = 240).</figcaption>
+        </figure>
+        <figure>
+          <img src="proj5/result/t390.png" alt="Noisy Campanile at t=390">
+          <figcaption>Campanile at an even higher noise level (e.g., t = 390).</figcaption>
+        </figure>
+      </div>
+
+    </section>
+
+    <!-- 1.2 Classical Denoising -->
+    <section id="part12">
+      <h2>1.2 Classical Denoising</h2>
+      <p>
+        I then tried classical Gaussian blur denoising on the noisy Campanile images. Even with
+        tuned kernel sizes and sigmas (kernel size = 5, sigma = 1), it struggles to recover fine details or clean edges.
+      </p>
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj5/result/gaussian_denoising.png" alt="Gaussian denoising grid">
+          <figcaption>
+            Gaussian blur denoising on noisy Campanile images at several noise levels (noisy vs denoised).
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 1.3 One-Step Denoising -->
+    <section id="part13">
+      <h2>1.3 One-Step Denoising</h2>
+      <p>
+        Next, I used the pretrained DeepFloyd UNet <code>stage_1.unet</code> as a one-step denoiser.
+        Given a noisy image and timestep, the network predicts the noise, which I then invert using
+        the diffusion formula to estimate <code>x₀</code>.
+      </p>
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj5/result/onestep_denoising.png" alt="One-step denoising">
+          <figcaption>
+            One-step denoising: original, noisy, and single-step UNet reconstruction for several timesteps.
+          </figcaption>
+        </figure>
+      </div>
+      <p class="note">
+        At first, the one-step denoiser was able to do a pretty good job, but the performance deminishes as the noise get higher.
+      </p>
+    </section>
+
+    <!-- 1.4 Iterative Denoising -->
+    <section id="part14">
+      <h2>1.4 Iterative Denoising</h2>
+      <p>
+        I constructed a strided schedule <code>strided_timesteps</code> starting at a large timestep
+        and stepping down to 0, then implemented <code>iterative_denoise</code> using the provided
+        DDPM-style update rule. This repeatedly refines the image and interpolates between signal and noise.
+      </p>
+      <div class="grid viz-grid">
+        <figure>
+          <img src="proj5/result/iterative_denoise.png" alt="Iterative denoising snapshots">
+          <figcaption>
+            Intermediate results every few iterations, starting from a noisy Campanile.
+          </figcaption>
+        </figure>
+      </div>
+      <div class="grid grid-lg">
+        <figure>
+          <img src="proj5/result/unknown.png" alt="Iteratively denoised final image">
+          <figcaption>Final iteratively denoised Campanile on the left, one step denoised in the middle, and gaussian denoised image on the right.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="part15">
+        <h2>1.5 Diffusion Model Sampling</h2>
+        <p>
+          In this section, I use the <code>iterative_denoise</code> function to generate images from scratch by denoising
+          pure Gaussian noise. I set <code>i_start = 0</code> and initialize <code>im_noisy</code> with
+          <code>torch.randn</code>. The prompt is
+          <code>"a high quality photo"</code>, and I show 5 independent samples.
+        </p>
+  
+        <h3>Deliverables — 5 samples of "a high quality photo"</h3>
+        <div class="grid grid-lg">
+
+          <figure>
+            <img src="proj5/result/iter_nocfg.png" alt="Sample 1 from noise">
+            <figcaption>Sample 1-5 — generated from pure noise with prompt "a high quality photo".</figcaption>
+          </figure>
+        </div>
+        <p>
+            The images mostly make little sense.
+          </p>
+      </section>
+  
+      <!-- 1.6 Classifier-Free Guidance (CFG) -->
+      <section id="part16">
+        <h2>1.6 Classifier-Free Guidance (CFG)</h2>
+        <p>
+          Here I implement <code>iterative_denoise_cfg</code>, which extends <code>iterative_denoise</code> by computing
+          both unconditional (<code>ε_uncond</code>) and conditional (<code>ε_cond</code>) noise estimates and combining
+          them as:
+        </p>
+        <p style="font-family:monospace;">
+          ε_cfg = ε_uncond + s &middot; (ε_cond − ε_uncond)
+        </p>
+        <p>
+          I obtain the unconditional estimate by passing an empty prompt embedding (corresponding to <code>""</code>),
+          and the conditional estimate with the prompt <code>"a high quality photo"</code>. I use the conditional variance
+          with <code>add_variance</code> and set <code>scale = s</code> (CFG scale).
+        </p>
+  
+        <h3>Deliverables — 5 samples with CFG</h3>
+        <p class="note">
+          Below I show 5 images generated with CFG using prompt <code>"a high quality photo"</code> and a CFG scale
+          (e.g., <code>s = 7</code> as suggested in the assignment). These images are of noticeably higher quality than
+          the ones in 1.5.
+        </p>
+  
+        <div class="grid grid-lg">
+          
+          <figure>
+            <img src="proj5/result/CFG_gamma7.png" alt="Sample 1 with CFG">
+            <figcaption>Sample 1 — CFG-enabled generation.</figcaption>
+          </figure>
+          
+        </div>
+      </section>
+  
+      <!-- 1.7 Image-to-image Translation (SDEdit on Campanile + own images) -->
+      <section id="part17">
+        <h2>1.7 Image-to-image Translation (SDEdit)</h2>
+        <p>
+          Using SDEdit, I start with a real image (the Campanile), run the forward diffusion process to a given timestep
+          index <code>i_start</code>, and then run <code>iterative_denoise_cfg</code> from that noisy image back to
+          timestep 0. The less noise I add (larger <code>i_start</code>), the bigger the edit. For large
+          <code>i_start</code>, the output is close to the original; for small <code>i_start</code>, the model is forced
+          to "hallucinate" more.
+        </p>
+  
+        <h3>Deliverables — Campanile edits with i_start ∈ {1, 3, 5, 7, 10, 20}</h3>
+        <p class="note">
+          All runs are guided with prompt <code>"a high quality photo"</code>. Below, I show the original Campanile,
+          a noisy version at some reference timestep (e.g. t=90), and the 6 SDEdit outputs for different <code>i_start</code>.
+        </p>
+  
+        <div class="grid grid-lg">
+          <!-- TODO: replace with your actual Campanile, noisy image, and SDEdit outputs -->
+          <figure>
+            <img src="proj5/result/imagetoimage_trans.png" alt="Original Campanile">
+            <figcaption>Original images on the left, noised image in the middle, and output image on the right.</figcaption>
+          </figure>
+
+        </div>
+
+  
+        <h3>Deliverables — SDEdit on 2 of my own test images</h3>
+        <p>
+          I also apply the same procedure to two of my own images and a web image, in this case it is the drawing of a panda in a black stripe, which becomes Marilyn Monroe at low i_start. The second image is a handdrawn house, which also becomes a photo. The web image is the logo of google, which becomes a dog</code>.
+        </p>
+  
+        <h4>Own Image #1</h4>
+        <div class="grid grid-lg">
+          <figure>
+            <img src="proj5/result/iti_mydraw.png" alt="Own image 1 noisy">
+          </figure>
+        </div>
+
+  
+        <h4>Own Image #2</h4>
+          <figure>
+            <img src="proj5/result/my2.png" alt="Own image 2 noisy">
+          </figure>
+        </div>
+        <h4>Logo of Google<ge/h4>
+        <div class="grid grid-lg">
+          <figure>
+            <img src="proj5/result/iti_google2.png" alt="Own image 1 noisy">
+          </figure>
+        </div>
+      </section>
+  
+      <!-- 1.7.1 Editing Hand-Drawn and Web Images -->
+  
+      <!-- 1.7.2 Inpainting -->
+      <section id="part172">
+        <h2>1.7.2 Inpainting</h2>
+        <p>
+          For inpainting, I implement an <code>inpaint</code> function that follows the RePaint idea: at each denoising
+          step, after computing the next estimate <code>x_t</code>, I replace the unmasked pixels with the corresponding
+          noisy version of the original image and only let the model update the masked region.
+        </p>
+        <p>
+          Concretely, given an original image <code>x_0</code> and binary mask <code>M</code> (1 = region to edit),
+          for each timestep <code>t</code> I enforce:
+        </p>
+        <p style="font-family:monospace;">
+          x_t = M &odot; x_t + (1 − M) &odot; x_t_orig_noisy
+        </p>
+  
+        <h3>Deliverables — Campanile inpainting</h3>
+        <div class="grid grid-lg">
+
+          <figure>
+            <img src="proj5/result/camp_repaint.png" alt="Resized Campanile">
+            <figcaption>Campanile image and the masked region to inpaint.</figcaption>
+          </figure>
+          <figure>
+            <img src="proj5/result/camp_inpaint.png" alt="Mask">
+            <figcaption>Inpainted campanile image.</figcaption>
+          </figure>
+        </div>
+  
+        <h3>Deliverables — 2 of my own images with masks</h3>
+        <p>
+          I repeat the same inpainting pipeline on two of my own images, using my own masks and show the original and inpainted result for each.
+        </p>
+  
+        <h4>Inpainting Example #1 My self portrait</h4>
+        <div class="grid grid-lg">
+            <figure>
+                <img src="proj5/result/inpaint_my.png" alt="Mask">
+                <figcaption>Inpainted self portrait image.</figcaption>
+              </figure>
+        </div>
+  
+        <h4>Inpainting Example #2 The Fox</h4>
+        <div class="grid grid-lg">
+            <figure>
+                <img src="proj5/result/inpaint_fox.png" alt="Mask">
+                <figcaption>Inpainted fox image.</figcaption>
+              </figure>
+        </div>
+      </section>
+  
+      <!-- 1.7.3 Text-Conditional Image-to-image Translation -->
+      <section id="part173">
+        <h2>1.7.3 Text-Conditional Image-to-image Translation</h2>
+        <p>
+          Finally, I perform SDEdit but now with stronger, semantic prompts, turning the procedure into text-conditioned
+          image-to-image translation. Instead of <code>"a high quality photo"</code>, I use prompts such as
+          <code>"a lithograph of the Bay Bridge"</code>, while still starting from the Campanile and from my own images.
+        </p>
+  
+        <h3>Deliverables — Campanile with text prompts</h3>
+        <p class="note">
+          For the Campanile, I show edits using one text prompt "a lithograph of the Bay Bridge".
+        </p>
+  
+        <div class="grid grid-lg">
+          <figure><img src="proj5/result/text_conditioned.png" alt=""><figcaption>Campanile, with text prompt.</figcaption></figure>
+
+        </div>
+  
+        <h3>Deliverables — 2 of my own images with text prompts</h3>
+        <p>
+          I apply text-guided SDEdit to two more of my own images, each with its own prompt.
+        </p>
+  
+        <h4>Own Image #1</h4>
+        <div class="grid grid-lg">
+          <figure><img src="proj5/result/iti_mydraw2.png" alt=""><figcaption>My Drawn image with prompt "a photo of a cable car"</figcaption></figure>
+        </div>
+
+  
+        <h4>Own Image #2</h4>
+        <div class="grid grid-lg">
+          <figure><img src="proj5/result/fox.png" alt=""><figcaption>Fox image with prompt "an oil painting of the Bay Area hills"</figcaption></figure>
+        </div>
+
+      </section>
+  
+      <!-- 1.8 Visual Anagrams -->
+      <section id="part18">
+        <h2>1.8 Visual Anagrams</h2>
+        <p>
+          I implement a <code>visual_anagrams</code> function that, at each denoising step, combines two noise estimates:
+          one for prompt <code>p1</code> on the current image, and one for prompt <code>p2</code> on the vertically flipped
+          image. After flipping the second noise field back and averaging, the resulting sample becomes an illusion that
+          looks like <code>p1</code> upright and <code>p2</code> when flipped upside down.
+        </p>
+  
+        <h3>Deliverables — 2 illusion pairs</h3>
+        <p class="note">
+          For each illusion, I show the upright and flipped versions..
+        </p>
+  
+        <div class="grid grid-lg">
+          <!-- Illusion 1 -->
+          <figure>
+            <img src="proj5/result/flipped_1.png" alt="Visual anagram 1 upright">
+            <figcaption>Illusion 1 — Upright "a photo of a cable car", flipped "an oil painting of the Bay Area hills"</figcaption>
+          </figure>
+          <figure>
+            <img src="proj5/result/flipped2.png" alt="Visual anagram 1 upright">
+            <figcaption>Illusion 1 — Upright "an oil painting of a Berkeley professor", flipped "an oil painting of the Bay Area hills'"</figcaption>
+          </figure>
+        </div>
+      </section>
+  
+      <!-- 1.9 Hybrid Images -->
+      <section id="part19">
+        <h2>1.9 Hybrid Images</h2>
+        <p>
+          For hybrid images, I implement <code>make_hybrids</code>, which computes two noise estimates from different
+          prompts and then combines their low and high spatial frequencies:
+        </p>
+        <ul>
+          <li>Low frequencies from one noise estimate (via Gaussian blur with kernel size 33, σ = 2).</li>
+          <li>High frequencies from the other (original minus the blurred version).</li>
+        </ul>
+        <p>
+          This factorized noise estimate is then used in the reverse diffusion process to produce an image that looks like
+          one prompt from up close and another from far away.
+        </p>
+  
+        <h3>Deliverables — 2 hybrid images</h3>
+        <div class="grid grid-lg">
+          <figure>
+            <img src="proj5/result/prof_chinatown.png" alt="Hybrid image 1">
+            <figcaption>Hybrid image 1 — 'an oil painting of a Berkeley professor' and 'a photo of San Francisco Chinatown'.</figcaption>
+          </figure>
+          <figure>
+            <img src="proj5/result/yosemite_chinatwone.png" alt="Hybrid image 2">
+            <figcaption>Hybrid image 2 - 'a photo of San Francisco Chinatown' and 'a lithograph of Yosemite'.</figcaption>
+          </figure>
+        </div>
+      </section>
+  
+      <!-- Part 2: Bells & Whistles -->
+      <section id="part2">
+        <h2>Part 2 — Bells &amp; Whistles</h2>
+        <p>
+          In Part 2, I explore additional creative extensions of the visual anagram, as well as made a logo for the class.
+        </p>
+  
+        <h3>More Visual Anagrams (Non-Flip Transformations)</h3>
+        <p>
+          Beyond vertical flipping, I implement two more transformations from the referenced paper to create additional visual anagrams. For each transformation, I show
+          an image that changes interpretation under that transform.
+        </p>
+        <div class="grid grid-lg">
+          <figure>
+            <img src="proj5/result/90_bkl_ggb.png" alt="Visual anagram with transform 1">
+            <figcaption>Visual anagram using transformation #1 90° rotation. Upright is a photo of a Berkeley student, rotated is a high quality picture of the Golden Gate Bridge</figcaption>
+          </figure>
+          <figure>
+            <img src="proj5/result/90º_chinatown_hill.png" alt="Visual anagram with transform 2">
+            <figcaption>Visual anagram using transformation #1 90° rotation. Upright is a photo of chinatown, rotated is the painting of bay area hills.</figcaption>
+          </figure>
+          <figure>
+            <img src="proj5/result/180.png" alt="Visual anagram with transform 2">
+            <figcaption>Visual anagram using transformation #2 180° rotation. Upright is a photo of tram car, rotated is the photo of gg bridge.</figcaption>
+          </figure>
+        </div>
+        <h3>Course Logo</h3>
+        <p>
+          In addition, I make a course logo employing text-conditioned image-to-image translation on the UCB logo. I used the prompt "a courselogo for berkeley class cs280, stylized with triangular prism and cameras"
+        </p>
+        <div class="grid grid-lg">
+          <figure>
+            <img src="proj5/result/california_golden_bears_logo_misc_19904779.png" alt="Visual anagram with transform 1">
+            <figcaption>Original image used for text-conditioned image-to-image translation. Berkeley Golden Bear</figcaption>
+          </figure>
+          <figure>
+            <img src="proj5/result/logos.png" alt="Visual anagram with transform 2">
+            <figcaption>The series of logos produced using the prompt "a courselogo for berkeley class cs280, stylized with triangular prism and cameras"</figcaption>
+          </figure>
+          <figure>
+            <img src="proj5/result/logo.png" alt="Visual anagram with transform 2">
+            <figcaption>Final version of the logo chosen, it contains elements like a triangular prism that symbolizes light, a little camera at the bottom right that symbolizes optical systems like cameras, and a 'CS' written at the middle.</figcaption>
+          </figure>
+        </div>
+
+    </main>
+</body>
+</html>
